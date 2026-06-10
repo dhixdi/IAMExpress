@@ -16,27 +16,20 @@ class MiniGameScreen extends ConsumerWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Sortir Paket'),
-        actions: [
-          IconButton(
-            icon: Icon(game.controlMode == 0 ? Icons.screen_rotation : Icons.touch_app),
-            tooltip: game.controlMode == 0 ? 'Gyroscope Mode' : 'Tap Mode',
-            onPressed: game.isPlaying ? null : notifier.toggleControlMode,
-          ),
-        ],
       ),
       body: game.isGameOver
           ? _GameOverView(game: game, onRestart: notifier.startGame)
           : game.isPlaying
               ? _GamePlayView(game: game, notifier: notifier)
-              : _StartView(game: game, onStart: notifier.startGame),
+              : _StartView(game: game, notifier: notifier),
     );
   }
 }
 
 class _StartView extends StatelessWidget {
   final GameState game;
-  final VoidCallback onStart;
-  const _StartView({required this.game, required this.onStart});
+  final GameNotifier notifier;
+  const _StartView({required this.game, required this.notifier});
 
   @override
   Widget build(BuildContext context) {
@@ -46,13 +39,36 @@ class _StartView extends StatelessWidget {
         child: Column(mainAxisSize: MainAxisSize.min, children: [
           const Text('📦', style: TextStyle(fontSize: 80)),
           const SizedBox(height: 16),
-          const Text('Sortir Paket', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700)),
-          const SizedBox(height: 8),
-          Text(game.controlMode == 0 ? '📱 Miringkan device untuk gerakkan paket' : '👆 Tap gudang untuk menyortir', textAlign: TextAlign.center, style: const TextStyle(color: AppColors.textMuted)),
-          const SizedBox(height: 8),
-          Text('Best: ${game.highScore}', style: const TextStyle(fontSize: 16, color: AppColors.accent, fontWeight: FontWeight.w600)),
+          const Text('Mini Games', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700)),
+          const SizedBox(height: 16),
+          
+          // Pilih Mode Game
+          RadioListTile<int>(
+            title: const Text('Sortir (Tap/Sentuh)', style: TextStyle(fontSize: 14)),
+            value: 0,
+            groupValue: game.gameMode,
+            onChanged: (v) => notifier.setGameMode(v!),
+            contentPadding: EdgeInsets.zero,
+          ),
+          RadioListTile<int>(
+            title: const Text('Sortir (Gyroscope/Miringkan)', style: TextStyle(fontSize: 14)),
+            value: 1,
+            groupValue: game.gameMode,
+            onChanged: (v) => notifier.setGameMode(v!),
+            contentPadding: EdgeInsets.zero,
+          ),
+          RadioListTile<int>(
+            title: const Text('Hujan Paket (Kocok HP)', style: TextStyle(fontSize: 14)),
+            value: 2,
+            groupValue: game.gameMode,
+            onChanged: (v) => notifier.setGameMode(v!),
+            contentPadding: EdgeInsets.zero,
+          ),
+
+          const SizedBox(height: 16),
+          Text('Best Score: ${game.highScore}', style: const TextStyle(fontSize: 16, color: AppColors.accent, fontWeight: FontWeight.w600)),
           const SizedBox(height: 24),
-          SizedBox(width: double.infinity, child: ElevatedButton(onPressed: onStart, child: const Text('Mulai Game', style: TextStyle(fontSize: 16)))),
+          SizedBox(width: double.infinity, child: ElevatedButton(onPressed: notifier.startGame, child: const Text('Mulai Game', style: TextStyle(fontSize: 16)))),
         ]),
       ),
     );
@@ -66,6 +82,32 @@ class _GamePlayView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (game.gameMode == 2) {
+      // Hujan Paket UI
+      return Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
+              Text('Paket Jatuh: ${game.score}', style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+              Text('⏱ ${game.timeLeft}s', style: const TextStyle(fontSize: 18, color: AppColors.danger, fontWeight: FontWeight.w700)),
+            ]),
+          ),
+          const Spacer(),
+          const Text('📳', style: TextStyle(fontSize: 80)),
+          const SizedBox(height: 16),
+          const Text('Kocok HP Terus!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.primary)),
+          const SizedBox(height: 8),
+          const Text('Semakin cepat dikocok, semakin banyak paket!', style: TextStyle(color: AppColors.textMuted)),
+          const Spacer(),
+          const Text('🚛', style: TextStyle(fontSize: 120)),
+          const Spacer(),
+        ],
+      );
+    }
+
+    // Mode Sortir UI
     return Column(children: [
       Padding(
         padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -100,7 +142,7 @@ class _GamePlayView extends StatelessWidget {
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: 4),
             child: ElevatedButton(
-              onPressed: () => notifier.dropToWarehouse(city),
+              onPressed: game.gameMode == 1 ? null : () => notifier.dropToWarehouse(city),
               style: ElevatedButton.styleFrom(backgroundColor: AppColors.primaryLight, padding: const EdgeInsets.symmetric(vertical: 16)),
               child: Column(mainAxisSize: MainAxisSize.min, children: [const Text('🏢', style: TextStyle(fontSize: 24)), Text(city, style: const TextStyle(fontSize: 11, color: Colors.white))]),
             ),

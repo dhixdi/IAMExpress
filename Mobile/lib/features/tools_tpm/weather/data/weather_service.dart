@@ -17,6 +17,18 @@ class WeatherService {
       'current': 'temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m',
       'timezone': 'Asia/Jakarta',
     });
-    return WeatherModel.fromJson(res.data as Map<String, dynamic>, lat, lon);
+
+    String locName = 'Lokasi Tidak Diketahui';
+    try {
+      final locRes = await Dio().get('https://nominatim.openstreetmap.org/reverse', queryParameters: {
+        'lat': lat, 'lon': lon, 'format': 'json', 'zoom': 10
+      });
+      if (locRes.data != null && locRes.data['address'] != null) {
+        final addr = locRes.data['address'];
+        locName = addr['city'] ?? addr['town'] ?? addr['county'] ?? addr['state'] ?? locName;
+      }
+    } catch (_) {}
+
+    return WeatherModel.fromJson(res.data as Map<String, dynamic>, lat, lon, locName);
   }
 }

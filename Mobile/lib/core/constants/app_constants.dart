@@ -9,6 +9,5 @@ class AppConstants {
   );
   static const String appName = 'IAMExpress';
   static const String weatherBaseUrl = 'https://api.open-meteo.com/v1';
-  static const String exchangeRateBaseUrl =
-      'https://v6.exchangerate-api.com/v6';
+  static const String exchangeRateBaseUrl = 'https://open.er-api.com/v6';
 }

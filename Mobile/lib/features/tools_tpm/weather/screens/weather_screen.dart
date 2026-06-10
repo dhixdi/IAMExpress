@@ -42,7 +42,7 @@ class WeatherScreen extends ConsumerWidget {
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Column(children: [
-                  Text('${w.lat.toStringAsFixed(4)}° ${w.lat < 0 ? 'S' : 'N'}, ${w.lon.toStringAsFixed(4)}° E', style: const TextStyle(color: Colors.white70, fontSize: 12)),
+                  Text(w.locationName, style: const TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w500)),
                   const SizedBox(height: 12),
                   Text(w.icon, style: const TextStyle(fontSize: 64)),
                   const SizedBox(height: 8),

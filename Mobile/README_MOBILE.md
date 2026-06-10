@@ -31,8 +31,7 @@ dart run build_runner build --delete-conflicting-outputs
 
 # 4. Jalankan di emulator/device
 flutter run \
-  --dart-define=API_BASE_URL=http://10.0.2.2:3000/api/v1 \
-  --dart-define=EXCHANGERATE_API_KEY=your_key
+  --dart-define=API_BASE_URL=http://10.0.2.2:3000/api/v1
 ```
 
 > Pastikan backend sudah berjalan di `http://localhost:3000` (atau URL produksi).
@@ -75,7 +74,7 @@ flutter run \
 | flutter_map | Peta interaktif berbasis OpenStreetMap |
 | latlong2 | Model koordinat latitude/longitude |
 | geolocator | Akses GPS device |
-| sensors_plus | Accelerometer (shake to refresh) + Gyroscope (mini game tilt control) |
+| sensors_plus | Accelerometer (Shake to refresh, Hujan Paket) + Gyroscope (Mini game) |
 | flutter_local_notifications | Notifikasi lokal saat status paket berubah |
 | cached_network_image | Load & cache foto profil |
 | image_picker | Ganti foto profil |
@@ -89,8 +88,7 @@ Aplikasi didistribusikan sebagai **APK internal** (bukan via Play Store).
 
 ```
 flutter build apk --release \
-  --dart-define=API_BASE_URL=https://api.iamexpress.id/api/v1 \
-  --dart-define=EXCHANGERATE_API_KEY=your_key
+  --dart-define=API_BASE_URL=https://api.iamexpress.id/api/v1
 
 Output: build/app/outputs/flutter-apk/app-release.apk
 ```
@@ -124,12 +122,12 @@ Output: build/app/outputs/flutter-apk/app-release.apk
 - Profil: foto, nama, role
 
 **Tools TPM (di menu Profil):**
-- Konversi mata uang (IDR, USD, EUR, SGD, JPY) — terintegrasi dengan konsep ongkos kirim
-- Konversi waktu (WIB, WITA, WIT, London) — terintegrasi dengan timestamp paket
-- Cuaca lokasi terkini (OpenWeatherMap)
+- Konversi mata uang (IDR, USD, EUR, SGD, JPY) — Menggunakan open.er-api.com
+- Konversi waktu (WIB, WITA, WIT, London)
+- Cuaca lokasi terkini (Open-Meteo) + Reverse Geocoding kota (Nominatim)
 
 **Fitur tambahan:**
-- Mini game "Sortir Paket" — tema ekspedisi, kontrol via **Gyroscope** (miringkan device)
+- Mini game "Sortir Paket" — 3 Mode: Sortir (Tap), Sortir (Gyroscope), Hujan Paket (Accelerometer)
 - Saran & Kesan mata kuliah TPM
 - Logout dengan konfirmasi
 

@@ -10,7 +10,7 @@ class CurrencyRateModel {
   const CurrencyRateModel({required this.baseCode, required this.rates, required this.lastUpdate});
 
   factory CurrencyRateModel.fromJson(Map<String, dynamic> json) {
-    final rawRates = json['conversion_rates'] as Map<String, dynamic>;
+    final rawRates = (json['rates'] ?? json['conversion_rates']) as Map<String, dynamic>;
     return CurrencyRateModel(
       baseCode: json['base_code'] as String,
       rates: rawRates.map((k, v) => MapEntry(k, (v as num).toDouble())),

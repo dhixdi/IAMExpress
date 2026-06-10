@@ -13,7 +13,7 @@ class CurrencyService {
   const CurrencyService(this._dio);
 
   Future<CurrencyRateModel> getRates() async {
-    final res = await _dio.get('/${AppConstants.exchangeRateApiKey}/latest/IDR');
+    final res = await _dio.get('/latest/IDR');
     return CurrencyRateModel.fromJson(res.data as Map<String, dynamic>);
   }
 }

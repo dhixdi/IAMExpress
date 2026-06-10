@@ -29,10 +29,11 @@ class WeatherModel {
   final double lat;
   final double lon;
   final int weatherCode;
+  final String locationName;
 
-  const WeatherModel({required this.tempCelsius, required this.description, required this.icon, required this.humidity, required this.windSpeed, required this.lat, required this.lon, required this.weatherCode});
+  const WeatherModel({required this.tempCelsius, required this.description, required this.icon, required this.humidity, required this.windSpeed, required this.lat, required this.lon, required this.weatherCode, required this.locationName});
 
-  factory WeatherModel.fromJson(Map<String, dynamic> json, double lat, double lon) {
+  factory WeatherModel.fromJson(Map<String, dynamic> json, double lat, double lon, String locationName) {
     final current = json['current'] as Map<String, dynamic>;
     final code = current['weather_code'] as int;
     return WeatherModel(
@@ -42,6 +43,7 @@ class WeatherModel {
       humidity: (current['relative_humidity_2m'] as num).toInt(),
       windSpeed: (current['wind_speed_10m'] as num).toDouble(),
       lat: lat, lon: lon, weatherCode: code,
+      locationName: locationName,
     );
   }
 }

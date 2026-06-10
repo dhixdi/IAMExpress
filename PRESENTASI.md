@@ -79,9 +79,9 @@ IAMExpress hadir sebagai **platform digital terpadu** yang menyediakan:
 | **AI Chat** | Asisten AI berbasis Gemini dengan bubble chat UI |
 | **Update Status** | Tombol kontekstual sesuai role & status paket |
 | **Biometric Auth** | Login dengan sidik jari / Face ID |
-| **Mini Game** | Game "Sortir Paket" dengan kontrol gyroscope |
-| **Weather** | Cuaca terkini berbasis GPS untuk keamanan pengiriman |
-| **Currency Converter** | Konversi mata uang terkait ongkos kirim |
+| **Mini Game** | 3 Mode: Sortir (Tap), Sortir (Gyroscope), Hujan Paket (Accelerometer) |
+| **Weather** | Cuaca terkini (Open-Meteo) + Reverse Geocoding Kota (Nominatim) |
+| **Currency Converter** | Konversi IDR ke mata uang asing (open.er-api.com gratis) |
 | **Timezone Converter** | Konversi waktu WIB/WITA/WIT/London |
 | **Profil** | Kelola foto, password, pengaturan biometrik |
 
@@ -314,20 +314,16 @@ Setiap paket melewati **10 status** yang tervalidasi di backend:
                     │   (Paket Dibuat)    │
                     └─────────┬───────────┘
                               │ WAREHOUSE_ADMIN
-                              ▼
-                    ┌─────────────────────┐
-                    │  RECEIVED AT        │
-                    │  WAREHOUSE          │
-                    │ (Diterima di Gudang)│
-                    └─────────┬───────────┘
-                              │ WAREHOUSE_ADMIN (assign)
-                              ▼
-                    ┌─────────────────────┐
-                    │  ASSIGNED TO        │
-                    │  LINEHAUL           │
-                    │ (Ditugaskan)        │
-                    └─────────┬───────────┘
-                              │ LINEHAUL
+                 ┌────────────┴────────────┐
+                 ▼                         ▼
+      ┌─────────────────────┐   ┌─────────────────────┐
+      │  RECEIVED AT        │   │  ASSIGNED TO        │
+      │  WAREHOUSE          │   │  LINEHAUL           │
+      │ (Diterima di Gudang)│   │ (Ditugaskan)        │
+      └─────────┬───────────┘   └─────────┬───────────┘
+                │                         │
+                └────────────┬────────────┘
+                             │ LINEHAUL
                               ▼
                     ┌─────────────────────┐
                     │     PICKED UP       │
@@ -533,10 +529,10 @@ Setiap paket melewati **10 status** yang tervalidasi di backend:
 | **Profil** | Foto, nama, role, gudang |
 | **Ganti Password** | Form validasi |
 | **Biometrik** | Toggle sidik jari / Face ID |
-| **Currency Converter** | IDR ↔ USD/EUR/SGD/JPY (ExchangeRate-API) |
+| **Currency Converter** | Konversi IDR ↔ USD/EUR/SGD/JPY (open.er-api.com) |
 | **Timezone Converter** | WIB/WITA/WIT/London real-time |
-| **Weather** | Cuaca GPS-based (Open-Meteo) + saran keamanan pengiriman |
-| **Mini Game** | "Sortir Paket" — game sorting paket dengan **kontrol Gyroscope** |
+| **Weather** | Cuaca GPS-based (Open-Meteo) + Geocoding Kota (Nominatim) |
+| **Mini Game** | "Sortir Paket" — 3 Mode: Sortir (Tap/Gyroscope), Hujan Paket (Accelerometer) |
 | **Saran & Kesan** | Form feedback (SharedPreferences) |
 
 ### Struktur Folder (Feature-First)
@@ -574,8 +570,8 @@ lib/
 
 | Sensor/Hardware | Teknologi | Implementasi |
 |---|---|---|
-| **Accelerometer** | `sensors_plus` | Shake to Refresh — goyangkan HP untuk memuat ulang daftar paket |
-| **Gyroscope** | `sensors_plus` | Kontrol tilt pada Mini Game "Sortir Paket" — miringkan HP untuk mengarahkan paket |
+| **Accelerometer** | `sensors_plus` | Shake to Refresh (List Paket) & Hujan Paket (Mini Game) & Rem Darurat (Sortir Mode) |
+| **Gyroscope** | `sensors_plus` | Mengontrol arah jatuh paket di Mini Game "Sortir Paket" |
 | **GPS** | `geolocator` | Deteksi lokasi real-time untuk peta, cuaca, dan navigasi |
 | **Kamera** | `image_picker` | Ambil/pilih foto profil |
 | **Biometrik** | `local_auth` | Autentikasi sidik jari / Face ID (device-side only) |
@@ -588,11 +584,11 @@ lib/
 | API | Endpoint | Fungsi | Biaya |
 |---|---|---|---|
 | **Google Gemini** | `generativelanguage.googleapis.com` | AI Chat Assistant | Gratis (Flash tier) |
-| **OpenStreetMap Nominatim** | `nominatim.openstreetmap.org` | Geocoding (alamat → koordinat) | Gratis (1 req/s) |
-| **OpenStreetMap Tiles** | `tile.openstreetmap.org` | Tile peta interaktif | Gratis |
-| **Open-Meteo** | `api.open-meteo.com` | Data cuaca real-time | Gratis |
-| **ExchangeRate-API** | `v6.exchangerate-api.com` | Konversi mata uang | Gratis (1500 req/bulan) |
-| **Google Maps** | `url_launcher` → Maps app | Navigasi ke tujuan paket | Gratis (open link) |
+| **OpenStreetMap Nominatim** | `nominatim.openstreetmap.org` | Geocoding (kordinat GPS → Nama Kota) | Gratis (1 req/s) |
+| **OpenStreetMap Tiles** | `tile.openstreetmap.org` | Tile peta interaktif (Map visual) | Gratis |
+| **Open-Meteo** | `api.open-meteo.com` | Data cuaca real-time berdasarkan GPS | Gratis |
+| **ExchangeRate API** | `open.er-api.com/v6/latest/IDR` | Konversi mata uang real-time | Gratis (Tanpa API Key) |
+| **Google Maps** | `url_launcher` → Maps app | Navigasi arah kurir ke tujuan paket | Gratis (open link) |
 
 ---
 
