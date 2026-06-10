@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../../core/constants/package_status.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/utils/format_currency.dart';
@@ -21,6 +22,16 @@ class PackageDetailScreen extends ConsumerStatefulWidget {
 class _PackageDetailScreenState extends ConsumerState<PackageDetailScreen> {
   bool _updating = false;
   String? _notes;
+
+  Future<void> _openGoogleMaps(dynamic pkg) async {
+    final destination = (pkg.receiverLat != null && pkg.receiverLng != null) 
+        ? '${pkg.receiverLat},${pkg.receiverLng}' 
+        : Uri.encodeComponent(pkg.alamatTujuan);
+    final uri = Uri.parse('https://www.google.com/maps/dir/?api=1&destination=$destination');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    }
+  }
 
   Future<void> _doUpdate(String status) async {
     setState(() => _updating = true);
@@ -75,6 +86,7 @@ class _PackageDetailScreenState extends ConsumerState<PackageDetailScreen> {
                     ]),
                     const SizedBox(height: 20),
                     _section('Info Paket', [
+                      if (pkg.destinationWarehouseName != null) _row('Rute (Gudang)', '${pkg.currentWarehouseName ?? "-"} ➔ ${pkg.destinationWarehouseName}'),
                       _row('Nama', pkg.namaPaket),
                       _row('Berat', '${pkg.berat} kg'),
                       _row('Layanan', pkg.jenisLayanan),
@@ -82,7 +94,19 @@ class _PackageDetailScreenState extends ConsumerState<PackageDetailScreen> {
                       if (pkg.deskripsiBarang != null) _row('Deskripsi', pkg.deskripsiBarang!),
                     ]),
                     _section('Pengirim', [_row('Alamat', pkg.alamatPengirim), _row('No HP', pkg.noHpPengirim)]),
-                    _section('Penerima', [_row('Alamat', pkg.alamatTujuan), _row('No HP', pkg.noHpPenerima)]),
+                    _section('Penerima', [
+                      _row('Alamat', pkg.alamatTujuan), 
+                      _row('No HP', pkg.noHpPenerima),
+                      const SizedBox(height: 8),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () => _openGoogleMaps(pkg),
+                          icon: const Icon(Icons.directions),
+                          label: const Text('Buka Rute di Google Maps'),
+                        ),
+                      ),
+                    ]),
                     const SizedBox(height: 12),
                     SizedBox(
                       width: double.infinity,
@@ -93,11 +117,11 @@ class _PackageDetailScreenState extends ConsumerState<PackageDetailScreen> {
                       ),
                     ),
                     const SizedBox(height: 24),
-                    if (isOutForDelivery) ...[
-                      const Text('Aksi', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                      const SizedBox(height: 12),
-                      Row(children: [
-                        Expanded(child: OutlinedButton.icon(onPressed: () => context.go('/peta'), icon: const Icon(Icons.map_outlined), label: const Text('Peta'))),
+                      if (isOutForDelivery) ...[
+                        const Text('Aksi', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                        const SizedBox(height: 12),
+                        Row(children: [
+                          Expanded(child: OutlinedButton.icon(onPressed: () => _openGoogleMaps(pkg), icon: const Icon(Icons.directions), label: const Text('Rute'))),
                         const SizedBox(width: 8),
                         Expanded(child: ElevatedButton.icon(onPressed: () => _confirmUpdate(PackageStatus.delivered), icon: const Icon(Icons.check), label: const Text('Selesai'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.success))),
                         const SizedBox(width: 8),

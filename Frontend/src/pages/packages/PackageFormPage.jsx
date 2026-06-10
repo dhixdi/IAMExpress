@@ -12,7 +12,7 @@ export default function PackageFormPage() {
   const [formData, setFormData] = useState({
     nama_paket: '', alamat_pengirim: '', alamat_tujuan: '',
     no_hp_pengirim: '', no_hp_penerima: '', deskripsi_barang: '',
-    berat: '', jenis_layanan: 'standar', current_warehouse_id: ''
+    berat: '', jenis_layanan: 'standar', destination_warehouse_id: ''
   });
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -35,7 +35,7 @@ export default function PackageFormPage() {
         deskripsi_barang: pkg.deskripsi_barang || '',
         berat: pkg.berat || '', 
         jenis_layanan: pkg.jenis_layanan || 'standar', 
-        current_warehouse_id: pkg.current_warehouse_id || ''
+        destination_warehouse_id: pkg.destination_warehouse_id || ''
       });
     }
   }, [isEdit, pkg]);
@@ -46,7 +46,7 @@ export default function PackageFormPage() {
     e.preventDefault();
     setErrorMsg('');
 
-    const payload = { ...formData, berat: Number(formData.berat) || 0, current_warehouse_id: Number(formData.current_warehouse_id) };
+    const payload = { ...formData, berat: Number(formData.berat) || 0, destination_warehouse_id: Number(formData.destination_warehouse_id) };
 
     if (isEdit) {
       updatePkg({ id, payload }, {
@@ -107,9 +107,9 @@ export default function PackageFormPage() {
           
           {!isEdit && (
             <div>
-              <label className="block text-sm mb-1">Gudang Awal</label>
-              <select required name="current_warehouse_id" value={formData.current_warehouse_id} onChange={handleChange} className="w-full border rounded-md p-2" disabled={isLoadingWh}>
-                <option value="">-- Pilih Gudang --</option>
+              <label className="block text-sm mb-1">Gudang Tujuan</label>
+              <select required name="destination_warehouse_id" value={formData.destination_warehouse_id} onChange={handleChange} className="w-full border rounded-md p-2" disabled={isLoadingWh}>
+                <option value="">-- Pilih Gudang Tujuan --</option>
                 {warehouses.map(w => <option key={w.warehouse_id} value={w.warehouse_id}>{w.nama_gudang}</option>)}
               </select>
             </div>

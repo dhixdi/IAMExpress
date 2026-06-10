@@ -3,12 +3,12 @@
  * Key = current status, Value = array of allowed next statuses.
  */
 const VALID_TRANSITIONS = {
-  'Created': ['Received at Warehouse'],
-  'Received at Warehouse': ['Assigned to Linehaul'],
-  'Assigned to Linehaul': ['Picked Up'],
+  'Created': ['Assigned to Linehaul', 'Assigned to Courier', 'Received at Warehouse'],
+  'Received at Warehouse': ['Assigned to Linehaul', 'Assigned to Courier', 'Arrived at Warehouse'],
+  'Assigned to Linehaul': ['Picked Up', 'Arrived at Warehouse'],
   'Picked Up': ['In Transit'],
   'In Transit': ['Arrived at Warehouse'],
-  'Arrived at Warehouse': ['Assigned to Courier'],
+  'Arrived at Warehouse': ['Assigned to Courier', 'Assigned to Linehaul'],
   'Assigned to Courier': ['Out For Delivery'],
   'Out For Delivery': ['Delivered', 'Failed Delivery'],
   'Failed Delivery': ['Assigned to Courier'],
@@ -18,7 +18,7 @@ const VALID_TRANSITIONS = {
  * Which statuses each role is allowed to set.
  */
 const ROLE_ALLOWED_STATUSES = {
-  'WAREHOUSE_ADMIN': ['Received at Warehouse', 'Assigned to Linehaul', 'Assigned to Courier'],
+  'WAREHOUSE_ADMIN': ['Received at Warehouse', 'Assigned to Linehaul', 'Assigned to Courier', 'Arrived at Warehouse', 'Failed Delivery'],
   'LINEHAUL': ['Picked Up', 'In Transit', 'Arrived at Warehouse'],
   'COURIER': ['Out For Delivery', 'Delivered', 'Failed Delivery'],
 };

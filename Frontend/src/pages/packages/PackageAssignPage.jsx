@@ -32,7 +32,7 @@ export default function PackageAssignPage() {
         <div className="flex justify-between items-center mb-6 border-b pb-4">
           <div>
             <p className="text-sm text-gray-500">Status Saat Ini</p>
-            <div className="mt-1"><StatusBadge status={pkg.status} /></div>
+            <div className="mt-1"><StatusBadge status={pkg.current_status} /></div>
           </div>
           <div className="text-right">
             <p className="text-sm text-gray-500">Gudang Saat Ini</p>
@@ -58,11 +58,14 @@ export default function PackageAssignPage() {
             <p className="text-sm text-gray-600">Assign ke kurir untuk pengiriman ke alamat tujuan.</p>
             <button 
               onClick={() => setModalType('courier')}
-              disabled={!pkg.current_warehouse_id}
+              disabled={!pkg.current_warehouse_id || pkg.current_warehouse_id !== pkg.destination_warehouse_id}
               className="w-full py-2 bg-amber-600 text-white rounded hover:bg-amber-700 disabled:opacity-50"
             >
               Pilih Courier
             </button>
+            {pkg.current_warehouse_id !== pkg.destination_warehouse_id && (
+              <p className="text-xs text-red-500 font-medium">Kurir hanya bisa di-assign jika paket sudah berada di Gudang Tujuan.</p>
+            )}
           </div>
         </div>
 
@@ -71,7 +74,7 @@ export default function PackageAssignPage() {
           <div className="flex flex-wrap gap-2">
             {[PACKAGE_STATUS.RECEIVED_AT_WAREHOUSE, PACKAGE_STATUS.ARRIVED_AT_WAREHOUSE, PACKAGE_STATUS.FAILED_DELIVERY].map(s => (
               <button 
-                key={s} onClick={() => handleUpdateStatus(s)} disabled={isPending || pkg.status === s}
+                key={s} onClick={() => handleUpdateStatus(s)} disabled={isPending || pkg.current_status === s}
                 className="px-3 py-1.5 border border-gray-300 rounded text-sm hover:bg-gray-100 disabled:opacity-50"
               >
                 Set: {s}

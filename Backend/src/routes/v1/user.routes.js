@@ -10,7 +10,7 @@ router.patch('/me/photo', authMiddleware, userController.updatePhoto);
 router.patch('/me/biometrics', authMiddleware, userController.updateBiometrics);
 
 // Collection routes
-router.get('/', authMiddleware, roleMiddleware(['SUPER_ADMIN']), userController.getUsers);
+router.get('/', authMiddleware, roleMiddleware(['SUPER_ADMIN', 'WAREHOUSE_ADMIN']), userController.getUsers);
 router.post('/', authMiddleware, roleMiddleware(['SUPER_ADMIN']), userController.createUser);
 
 // /:id routes

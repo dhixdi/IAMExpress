@@ -36,12 +36,14 @@ final authProvider = ChangeNotifierProvider<AuthState>((ref) => AuthState());
 
 Future<void> performLogin(WidgetRef ref, String email, String password) async {
   final auth = ref.read(authProvider);
+  final authService = ref.read(authServiceProvider);
+  final storage = ref.read(secureStorageProvider);
   auth.setLoading(true);
   auth.setError(null);
   try {
-    final result = await ref.read(authServiceProvider).login(email, password);
-    await ref.read(secureStorageProvider).writeToken(result.token);
-    await ref.read(secureStorageProvider).writeEmail(email);
+    final result = await authService.login(email, password);
+    await storage.writeToken(result.token);
+    await storage.writeEmail(email);
     auth.setAuth(token: result.token, user: result.user);
   } catch (e) {
     auth.setLoading(false);

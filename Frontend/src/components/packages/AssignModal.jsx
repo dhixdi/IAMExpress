@@ -1,11 +1,14 @@
 import { useState } from 'react';
 import { useUsers } from '../../hooks/useUsers';
 import { useAssignPackage } from '../../hooks/usePackages';
+import { useWarehouses } from '../../hooks/useWarehouses';
 import { X } from 'lucide-react';
 import { ROLES } from '../../constants/roles';
 
 export default function AssignModal({ open, packageId, type, warehouseId, onSuccess, onClose }) {
   const [selectedUser, setSelectedUser] = useState('');
+  const [selectedDestWarehouse, setSelectedDestWarehouse] = useState('');
+  const [error, setError] = useState(null);
   
   const roleToFetch = type === 'linehaul' ? ROLES.LINEHAUL : ROLES.COURIER;
   
@@ -14,21 +17,42 @@ export default function AssignModal({ open, packageId, type, warehouseId, onSucc
     warehouse_id: warehouseId,
     per_page: 100,
   });
+
+  const { data: whResp, isLoading: isLoadingWh } = useWarehouses(
+    { per_page: 100 }, 
+    { enabled: type === 'linehaul' }
+  );
   
   const { mutate: assignPackage, isPending } = useAssignPackage();
 
   if (!open) return null;
 
   const users = usersData?.data?.users || [];
+  const warehouses = whResp?.data?.warehouses || [];
 
   const handleAssign = () => {
     if (!selectedUser) return;
+    if (type === 'linehaul' && !selectedDestWarehouse) {
+      setError('Pilih Gudang Tujuan untuk Linehaul.');
+      return;
+    }
+    setError(null);
     assignPackage(
-      { id: packageId, user_id: Number(selectedUser), type },
+      { 
+        id: packageId, 
+        user_id: Number(selectedUser), 
+        type, 
+        ...(type === 'linehaul' && selectedDestWarehouse ? { destination_warehouse_id: Number(selectedDestWarehouse) } : {}) 
+      },
       {
         onSuccess: () => {
           onSuccess();
           setSelectedUser('');
+          setError(null);
+        },
+        onError: (err) => {
+          const msg = err?.response?.data?.message || 'Gagal assign paket. Coba lagi.';
+          setError(msg);
         },
       }
     );
@@ -66,6 +90,31 @@ export default function AssignModal({ open, packageId, type, warehouseId, onSucc
               <p className="mt-2 text-sm text-amber-600">Tidak ada {type} di gudang ini.</p>
             )}
           </div>
+
+          {type === 'linehaul' && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Gudang Tujuan (Berikutnya)
+              </label>
+              <select
+                className="w-full border border-gray-300 rounded-md shadow-sm p-2 focus:ring-navy-900 focus:border-navy-900"
+                value={selectedDestWarehouse}
+                onChange={(e) => setSelectedDestWarehouse(e.target.value)}
+                disabled={isLoadingWh}
+              >
+                <option value="">-- Pilih Gudang Tujuan --</option>
+                {warehouses.filter(w => w.warehouse_id !== warehouseId).map(w => (
+                  <option key={w.warehouse_id} value={w.warehouse_id}>{w.nama_gudang}</option>
+                ))}
+              </select>
+            </div>
+          )}
+
+          {error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-md">
+              <p className="text-sm text-red-700">{error}</p>
+            </div>
+          )}
         </div>
 
         <div className="flex items-center justify-end gap-3 p-4 bg-gray-50 border-t border-gray-100">
@@ -88,3 +137,4 @@ export default function AssignModal({ open, packageId, type, warehouseId, onSucc
     </div>
   );
 }
+

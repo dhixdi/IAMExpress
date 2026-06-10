@@ -350,11 +350,23 @@ const updateStatus = async (req, res) => {
       updateValues
     );
 
+    let trackerWarehouseId = existing[0].current_warehouse_id;
+    if (status === 'Arrived at Warehouse' && existing[0].destination_warehouse_id) {
+      trackerWarehouseId = existing[0].destination_warehouse_id;
+    }
+
+    let finalNotes = notes || null;
+    if (status === 'In Transit' && !finalNotes) {
+      finalNotes = 'Sedang dalam perjalanan menuju gudang tujuan';
+    } else if (status === 'Arrived at Warehouse' && !finalNotes) {
+      finalNotes = 'Paket telah tiba dan diterima di gudang';
+    }
+
     // Insert tracker entry
     await db.query(
       `INSERT INTO package_tracker (package_id, warehouse_id, status, notes, created_by)
        VALUES (?, ?, ?, ?, ?)`,
-      [id, req.user.warehouse_id || existing[0].current_warehouse_id, status, notes || null, req.user.user_id]
+      [id, trackerWarehouseId, status, finalNotes, req.user.user_id]
     );
 
     const [rows] = await db.query(
@@ -380,7 +392,7 @@ const updateStatus = async (req, res) => {
 const assignPackage = async (req, res) => {
   try {
     const { id } = req.params;
-    const { user_id, type } = req.body;
+    const { user_id, type, destination_warehouse_id } = req.body;
 
     if (!user_id || !type) {
       return errorResponse(res, 'user_id dan type harus diisi', 400);
@@ -417,16 +429,29 @@ const assignPackage = async (req, res) => {
 
     const newStatus = type === 'linehaul' ? 'Assigned to Linehaul' : 'Assigned to Courier';
 
+    if (type === 'courier' && existing[0].current_warehouse_id !== existing[0].destination_warehouse_id) {
+      return errorResponse(res, 'Kurir hanya bisa di-assign jika paket sudah berada di Gudang Tujuan', 400);
+    }
+
     // Validate status transition
     if (!isValidTransition(existing[0].current_status, newStatus)) {
       return errorResponse(res, `Tidak bisa assign. Status saat ini '${existing[0].current_status}' tidak dapat diubah ke '${newStatus}'`, 400);
     }
 
+    // Prepare update
+    let updateQuery = 'UPDATE packages SET assigned_user_id = ?, current_status = ?';
+    let updateParams = [user_id, newStatus];
+
+    if (type === 'linehaul' && destination_warehouse_id) {
+      updateQuery += ', destination_warehouse_id = ?';
+      updateParams.push(destination_warehouse_id);
+    }
+
+    updateQuery += ' WHERE package_id = ?';
+    updateParams.push(id);
+
     // Update package
-    await db.query(
-      'UPDATE packages SET assigned_user_id = ?, current_status = ? WHERE package_id = ?',
-      [user_id, newStatus, id]
-    );
+    await db.query(updateQuery, updateParams);
 
     // Insert tracker entry
     await db.query(

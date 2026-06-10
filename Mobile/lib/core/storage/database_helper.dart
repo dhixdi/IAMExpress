@@ -44,6 +44,8 @@ class DatabaseHelper {
         current_status TEXT NOT NULL,
         current_warehouse_id INTEGER,
         current_warehouse_name TEXT,
+        destination_warehouse_id INTEGER,
+        destination_warehouse_name TEXT,
         created_at TEXT NOT NULL
       )
     ''');

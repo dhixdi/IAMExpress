@@ -30,6 +30,10 @@ class PackageCard extends StatelessWidget {
               const SizedBox(height: 4),
               Text(package.namaPaket, style: const TextStyle(fontSize: 14, color: AppColors.textSecondary)),
               const SizedBox(height: 4),
+              if (package.destinationWarehouseName != null) ...[
+                Text('Rute: ${package.currentWarehouseName ?? "-"} ➔ ${package.destinationWarehouseName}', style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.accent)),
+                const SizedBox(height: 2),
+              ],
               Text(package.alamatTujuan, maxLines: 1, overflow: TextOverflow.ellipsis, style: const TextStyle(fontSize: 12, color: AppColors.textMuted)),
               const SizedBox(height: 8),
               Row(

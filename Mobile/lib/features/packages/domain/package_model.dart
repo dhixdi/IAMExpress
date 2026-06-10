@@ -15,6 +15,8 @@ class PackageModel {
   final String currentStatus;
   final int currentWarehouseId;
   final String? currentWarehouseName;
+  final int? destinationWarehouseId;
+  final String? destinationWarehouseName;
   final DateTime createdAt;
 
   const PackageModel({
@@ -24,11 +26,16 @@ class PackageModel {
     this.deskripsiBarang, required this.berat, required this.jenisLayanan,
     required this.ongkosKirim, this.receiverLat, this.receiverLng,
     required this.currentStatus, required this.currentWarehouseId,
-    this.currentWarehouseName, required this.createdAt,
+    this.currentWarehouseName, this.destinationWarehouseId,
+    this.destinationWarehouseName, required this.createdAt,
   });
 
+  static double _toDouble(dynamic v) => v == null ? 0.0 : (v is num ? v.toDouble() : double.tryParse(v.toString()) ?? 0.0);
+  static double? _toDoubleNullable(dynamic v) => v == null ? null : (v is num ? v.toDouble() : double.tryParse(v.toString()));
+  static int _toInt(dynamic v) => v == null ? 0 : (v is int ? v : int.tryParse(v.toString()) ?? 0);
+
   factory PackageModel.fromJson(Map<String, dynamic> json) => PackageModel(
-    packageId: json['package_id'] as int,
+    packageId: _toInt(json['package_id']),
     resi: json['resi'] as String,
     namaPaket: json['nama_paket'] as String,
     alamatPengirim: json['alamat_pengirim'] as String,
@@ -36,15 +43,17 @@ class PackageModel {
     noHpPengirim: json['no_hp_pengirim'] as String,
     noHpPenerima: json['no_hp_penerima'] as String,
     deskripsiBarang: json['deskripsi_barang'] as String?,
-    berat: (json['berat'] as num).toDouble(),
+    berat: _toDouble(json['berat']),
     jenisLayanan: json['jenis_layanan'] as String,
-    ongkosKirim: (json['ongkos_kirim'] as num).toDouble(),
-    receiverLat: (json['receiver_lat'] as num?)?.toDouble(),
-    receiverLng: (json['receiver_lng'] as num?)?.toDouble(),
+    ongkosKirim: _toDouble(json['ongkos_kirim']),
+    receiverLat: _toDoubleNullable(json['receiver_lat']),
+    receiverLng: _toDoubleNullable(json['receiver_lng']),
     currentStatus: json['current_status'] as String,
-    currentWarehouseId: json['current_warehouse_id'] as int,
+    currentWarehouseId: _toInt(json['current_warehouse_id']),
     currentWarehouseName: json['current_warehouse_name'] as String?,
-    createdAt: DateTime.parse(json['created_at'] as String),
+    destinationWarehouseId: json['destination_warehouse_id'] != null ? _toInt(json['destination_warehouse_id']) : null,
+    destinationWarehouseName: json['destination_warehouse_name'] as String?,
+    createdAt: DateTime.parse(json['created_at'].toString()),
   );
 
   factory PackageModel.fromMap(Map<String, dynamic> map) => PackageModel.fromJson(map);
@@ -66,6 +75,8 @@ class PackageModel {
     'current_status': currentStatus,
     'current_warehouse_id': currentWarehouseId,
     'current_warehouse_name': currentWarehouseName,
+    'destination_warehouse_id': destinationWarehouseId,
+    'destination_warehouse_name': destinationWarehouseName,
     'created_at': createdAt.toIso8601String(),
   };
 }

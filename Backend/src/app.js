@@ -10,8 +10,12 @@ const app = express();
 app.use(helmet());
 
 // CORS
+const corsOrigin = process.env.NODE_ENV === 'development'
+  ? true  // izinkan semua origin di development
+  : process.env.ALLOWED_ORIGINS?.split(',') || '*';
+
 app.use(cors({
-  origin: process.env.ALLOWED_ORIGINS?.split(',') || '*',
+  origin: corsOrigin,
   credentials: true,
 }));
 

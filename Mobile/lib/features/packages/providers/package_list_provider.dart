@@ -28,25 +28,27 @@ class PackageListNotifier extends StateNotifier<PackageListState> {
     _query = query;
     state = state.copyWith(isLoading: true, error: null, page: 1, hasMore: true, packages: []);
     
-    // 1. Coba ambil dari offline cache dulu agar UI cepat tampil
+    // 1. Coba ambil dari offline cache dulu agar UI cepat tampil (skip di web)
     try {
       final localPackages = await DatabaseHelper.instance.getPackages(statusFilter: statusFilter, query: _query);
       if (localPackages.isNotEmpty) {
         state = state.copyWith(packages: localPackages, isLoading: false);
       }
-    } catch (e) {
-      // Abaikan error lokal, lanjut ke server
+    } catch (_) {
+      // sqflite tidak support web, abaikan
     }
 
     // 2. Tarik dari server
     try {
       final result = await _service.getAll(page: 1, perPage: 10, currentStatus: statusFilter, q: _query);
       
-      // Jika halaman 1, simpan ke database lokal
-      if (_query == null || _query!.isEmpty) {
-        // Hapus cache lama jika tidak ada query pencarian dan kita memuat halaman pertama
-        // (opsional: bisa lebih canggih, tapi untuk kemudahan kita insert/replace)
-        await DatabaseHelper.instance.insertPackages(result.packages);
+      // Simpan ke cache lokal (skip error di web)
+      try {
+        if (_query == null || _query!.isEmpty) {
+          await DatabaseHelper.instance.insertPackages(result.packages);
+        }
+      } catch (_) {
+        // sqflite tidak support web, abaikan
       }
       
       state = state.copyWith(packages: result.packages, isLoading: false, hasMore: 1 < result.meta.totalPages, page: 1);
@@ -54,7 +56,6 @@ class PackageListNotifier extends StateNotifier<PackageListState> {
       if (state.packages.isEmpty) {
         state = state.copyWith(isLoading: false, error: 'Anda sedang offline. Tidak ada data cache tersedia.');
       } else {
-        // Jika sudah ada data dari cache, kita matikan loading tanpa error besar
         state = state.copyWith(isLoading: false);
       }
     }

@@ -7,13 +7,11 @@ const VALID_ROLES = ['SUPER_ADMIN', 'WAREHOUSE_ADMIN', 'LINEHAUL', 'COURIER'];
 
 const getUsers = async (req, res) => {
   try {
-    if (req.user.role !== 'SUPER_ADMIN') {
-      return errorResponse(res, 'Akses ditolak', 403);
-    }
-
     const { page, limit, offset } = getPaginationParams(req.query);
     const { sort_by, order } = getSortParams(req.query, ['nama', 'email', 'role', 'created_at'], 'created_at');
-    const { q, role, warehouse_id } = req.query;
+    const { q, role } = req.query;
+    // WAREHOUSE_ADMIN hanya bisa lihat user di warehouse-nya sendiri
+    const warehouse_id = req.user.role === 'WAREHOUSE_ADMIN' ? req.user.warehouse_id : req.query.warehouse_id;
 
     let whereClause = '1=1';
     const params = [];
