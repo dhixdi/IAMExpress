@@ -29,12 +29,18 @@ flutter pub get
 # 3. Generate Riverpod code
 dart run build_runner build --delete-conflicting-outputs
 
-# 4. Jalankan di emulator/device
+# 4. Jalankan di emulator (auto-detect 10.0.2.2)
+flutter run
+
+# 4b. Jalankan di HP fisik (ganti IP laptop)
 flutter run \
-  --dart-define=API_BASE_URL=http://10.0.2.2:3000/api/v1
+  --dart-define=API_BASE_URL=http://<IP_WIFI_LAPTOP>:3000/api/v1
 ```
 
-> Pastikan backend sudah berjalan di `http://localhost:3000` (atau URL produksi).
+> API Base URL otomatis mendeteksi platform:
+> - **Web (Edge/Chrome):** `localhost:3000`
+> - **Android Emulator:** `10.0.2.2:3000`
+> - **HP Fisik:** Wajib pakai `--dart-define` dengan IP WiFi laptop
 
 ---
 
@@ -165,5 +171,7 @@ Output: build/app/outputs/flutter-apk/app-release.apk
 | `flutter_secure_storage` error emulator | Tambahkan `encryptedSharedPreferences: true` di AndroidOptions |
 | Peta flutter_map blank | Cek koneksi internet di emulator |
 | GPS tidak berfungsi di emulator | Set lokasi manual: Extended Controls → Location |
-| API tidak terhubung dari emulator | Gunakan `10.0.2.2` bukan `localhost` atau `127.0.0.1` |
+| API tidak terhubung dari emulator | Otomatis pakai `10.0.2.2`, untuk HP fisik pakai `--dart-define=API_BASE_URL=http://<IP_LAPTOP>:3000/api/v1` |
 | Sensor accelerometer null | Pastikan `sensors_plus` sudah di pubspec dan permission sudah di-request |
+| Peta 403 Access Blocked | Pastikan `TileLayer` punya `userAgentPackageName` |
+| AI Chat error | Cek `GEMINI_API_KEY` di Backend/.env, pastikan dari Google AI Studio (berawalan `AIzaSy`) |

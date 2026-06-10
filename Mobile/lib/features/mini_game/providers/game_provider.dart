@@ -66,7 +66,7 @@ class GameNotifier extends StateNotifier<GameState> {
   void _startGyroscope() {
     _gyroSub = gyroscopeEventStream().listen((event) {
       if (!state.isPlaying) return;
-      final newX = (state.packageX + event.y * 0.02).clamp(0.05, 0.95);
+      final newX = (state.packageX + event.z * 0.02).clamp(0.05, 0.95);
       state = state.copyWith(packageX: newX);
     });
   }
@@ -129,6 +129,16 @@ class GameNotifier extends StateNotifier<GameState> {
     state = state.copyWith(isPlaying: false, isGameOver: true, timeLeft: 0);
     _timer?.cancel(); _physicsTimer?.cancel(); _gyroSub?.cancel(); _accelSub?.cancel();
     _saveHighScore();
+  }
+
+  void stopGame() {
+    _timer?.cancel(); _physicsTimer?.cancel(); _gyroSub?.cancel(); _accelSub?.cancel();
+    state = GameState(highScore: state.highScore, gameMode: state.gameMode);
+  }
+
+  void resetToMenu() {
+    _timer?.cancel(); _physicsTimer?.cancel(); _gyroSub?.cancel(); _accelSub?.cancel();
+    state = GameState(highScore: state.highScore, gameMode: state.gameMode);
   }
 
   void _spawnPackage() {

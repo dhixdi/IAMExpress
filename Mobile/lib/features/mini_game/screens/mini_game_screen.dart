@@ -1,15 +1,46 @@
+import 'dart:math';
 import 'package:flutter/material.dart';
+import 'package:flutter/scheduler.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_colors.dart';
 import '../providers/game_provider.dart';
 
-class MiniGameScreen extends ConsumerWidget {
+class MiniGameScreen extends ConsumerStatefulWidget {
   const MiniGameScreen({super.key});
 
   static const _warehouses = ['Jogja', 'Jakarta', 'Surabaya'];
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<MiniGameScreen> createState() => _MiniGameScreenState();
+}
+
+class _MiniGameScreenState extends ConsumerState<MiniGameScreen> {
+  late final GoRouter _router;
+
+  @override
+  void initState() {
+    super.initState();
+    _router = GoRouter.of(context);
+    _router.routerDelegate.addListener(_onRouteChange);
+  }
+
+  void _onRouteChange() {
+    final location = _router.routerDelegate.currentConfiguration.uri.toString();
+    if (!location.contains('mini-game')) {
+      ref.read(gameProvider.notifier).stopGame();
+    }
+  }
+
+  @override
+  void dispose() {
+    _router.routerDelegate.removeListener(_onRouteChange);
+    ref.read(gameProvider.notifier).stopGame();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final game = ref.watch(gameProvider);
     final notifier = ref.read(gameProvider.notifier);
 
@@ -18,7 +49,7 @@ class MiniGameScreen extends ConsumerWidget {
         title: const Text('Sortir Paket'),
       ),
       body: game.isGameOver
-          ? _GameOverView(game: game, onRestart: notifier.startGame)
+          ? _GameOverView(game: game, notifier: notifier)
           : game.isPlaying
               ? _GamePlayView(game: game, notifier: notifier)
               : _StartView(game: game, notifier: notifier),
@@ -75,17 +106,77 @@ class _StartView extends StatelessWidget {
   }
 }
 
-class _GamePlayView extends StatelessWidget {
+class _GamePlayView extends StatefulWidget {
   final GameState game;
   final GameNotifier notifier;
   const _GamePlayView({required this.game, required this.notifier});
 
   @override
+  State<_GamePlayView> createState() => _GamePlayViewState();
+}
+
+class _FallingPackage {
+  double x;
+  double y;
+  double speed;
+  String emoji;
+  _FallingPackage({required this.x, required this.y, required this.speed, required this.emoji});
+}
+
+class _GamePlayViewState extends State<_GamePlayView> with SingleTickerProviderStateMixin {
+  final List<_FallingPackage> _packages = [];
+  late final Ticker _ticker;
+  int _lastScore = 0;
+  final _random = Random();
+  static const _emojis = ['📦', '📫', '📪', '🎁', '📬'];
+
+  @override
+  void initState() {
+    super.initState();
+    _ticker = createTicker(_onTick)..start();
+  }
+
+  void _onTick(Duration elapsed) {
+    if (!mounted) return;
+    setState(() {
+      for (final p in _packages) {
+        p.y += p.speed;
+      }
+      _packages.removeWhere((p) => p.y > 1.2);
+    });
+  }
+
+  @override
+  void didUpdateWidget(covariant _GamePlayView old) {
+    super.didUpdateWidget(old);
+    if (widget.game.gameMode == 2 && widget.game.score > _lastScore) {
+      final diff = widget.game.score - _lastScore;
+      for (int i = 0; i < diff; i++) {
+        _packages.add(_FallingPackage(
+          x: _random.nextDouble() * 0.85 + 0.05,
+          y: -0.05 - _random.nextDouble() * 0.15,
+          speed: 0.008 + _random.nextDouble() * 0.008,
+          emoji: _emojis[_random.nextInt(_emojis.length)],
+        ));
+      }
+    }
+    _lastScore = widget.game.score;
+  }
+
+  @override
+  void dispose() {
+    _ticker.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final game = widget.game;
+    final notifier = widget.notifier;
+
     if (game.gameMode == 2) {
       // Hujan Paket UI
       return Column(
-        mainAxisAlignment: MainAxisAlignment.center,
         children: [
           Padding(
             padding: const EdgeInsets.all(16),
@@ -94,15 +185,41 @@ class _GamePlayView extends StatelessWidget {
               Text('⏱ ${game.timeLeft}s', style: const TextStyle(fontSize: 18, color: AppColors.danger, fontWeight: FontWeight.w700)),
             ]),
           ),
-          const Spacer(),
-          const Text('📳', style: TextStyle(fontSize: 80)),
-          const SizedBox(height: 16),
-          const Text('Kocok HP Terus!', style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: AppColors.primary)),
-          const SizedBox(height: 8),
-          const Text('Semakin cepat dikocok, semakin banyak paket!', style: TextStyle(color: AppColors.textMuted)),
-          const Spacer(),
-          const Text('🚛', style: TextStyle(fontSize: 120)),
-          const Spacer(),
+          Expanded(
+            child: LayoutBuilder(builder: (_, constraints) {
+              final w = constraints.maxWidth;
+              final h = constraints.maxHeight;
+              return Stack(
+                children: [
+                  // Background
+                  Container(decoration: BoxDecoration(gradient: LinearGradient(begin: Alignment.topCenter, end: Alignment.bottomCenter, colors: [AppColors.background, AppColors.primary.withValues(alpha: 0.05)]))),
+                  // Falling packages
+                  ..._packages.map((p) => Positioned(
+                    left: p.x * w - 16,
+                    top: p.y * h,
+                    child: Text(p.emoji, style: const TextStyle(fontSize: 32)),
+                  )),
+                  // Truck at bottom
+                  Positioned(
+                    bottom: 8,
+                    left: 0,
+                    right: 0,
+                    child: Center(child: Text('🚛', style: const TextStyle(fontSize: 80))),
+                  ),
+                  // Center text
+                  Center(
+                    child: Column(mainAxisSize: MainAxisSize.min, children: [
+                      const Text('📳', style: TextStyle(fontSize: 60)),
+                      const SizedBox(height: 8),
+                      const Text('Kocok HP Terus!', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.primary)),
+                      const SizedBox(height: 4),
+                      const Text('Semakin cepat dikocok,\nsemakin banyak paket!', textAlign: TextAlign.center, style: TextStyle(color: AppColors.textMuted, fontSize: 13)),
+                    ]),
+                  ),
+                ],
+              );
+            }),
+          ),
         ],
       );
     }
@@ -155,8 +272,8 @@ class _GamePlayView extends StatelessWidget {
 
 class _GameOverView extends StatelessWidget {
   final GameState game;
-  final VoidCallback onRestart;
-  const _GameOverView({required this.game, required this.onRestart});
+  final GameNotifier notifier;
+  const _GameOverView({required this.game, required this.notifier});
 
   @override
   Widget build(BuildContext context) {
@@ -164,13 +281,17 @@ class _GameOverView extends StatelessWidget {
       child: Padding(
         padding: const EdgeInsets.all(32),
         child: Column(mainAxisSize: MainAxisSize.min, children: [
+          const Text('🏁', style: TextStyle(fontSize: 64)),
+          const SizedBox(height: 12),
           const Text('Game Over', style: TextStyle(fontSize: 28, fontWeight: FontWeight.w700)),
           const SizedBox(height: 16),
           Text('Skor: ${game.score}', style: const TextStyle(fontSize: 40, fontWeight: FontWeight.w700, color: AppColors.primary)),
           const SizedBox(height: 8),
           Text('⭐ Best: ${game.highScore}', style: const TextStyle(fontSize: 18, color: AppColors.accent, fontWeight: FontWeight.w600)),
           const SizedBox(height: 24),
-          SizedBox(width: double.infinity, child: ElevatedButton(onPressed: onRestart, child: const Text('Main Lagi'))),
+          SizedBox(width: double.infinity, child: ElevatedButton(onPressed: notifier.startGame, child: const Text('Main Lagi'))),
+          const SizedBox(height: 8),
+          SizedBox(width: double.infinity, child: OutlinedButton(onPressed: notifier.resetToMenu, child: const Text('Ganti Mode'))),
         ]),
       ),
     );
