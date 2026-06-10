@@ -29,7 +29,7 @@ const getWarehouses = async (req, res) => {
     );
 
     const meta = buildPaginationMeta(page, limit, total);
-    return successResponse(res, rows, 'Data warehouses berhasil diambil', 200, meta);
+    return successResponse(res, { warehouses: rows }, 'Data warehouses berhasil diambil', 200, meta);
   } catch (error) {
     console.error('getWarehouses error:', error);
     return errorResponse(res, 'Internal server error', 500);

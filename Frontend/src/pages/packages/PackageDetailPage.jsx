@@ -30,7 +30,7 @@ export default function PackageDetailPage() {
                 <h2 className="text-2xl font-bold tracking-tight text-gray-900">{pkg.resi}</h2>
               </div>
               <div className="text-right">
-                <StatusBadge status={pkg.status} />
+                <StatusBadge status={pkg.current_status} />
                 <p className="text-xs text-gray-500 mt-1">Dibuat: {formatDate(pkg.created_at)}</p>
               </div>
             </div>
@@ -38,15 +38,13 @@ export default function PackageDetailPage() {
             <div className="p-6 grid grid-cols-1 sm:grid-cols-2 gap-8">
               <div>
                 <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">Pengirim</h3>
-                <p className="font-medium text-gray-900">{pkg.sender_name}</p>
-                <p className="text-gray-600">{pkg.sender_phone}</p>
-                <p className="text-gray-600 text-sm mt-1">{pkg.sender_address}</p>
+                <p className="font-medium text-gray-900">{pkg.no_hp_pengirim}</p>
+                <p className="text-gray-600 text-sm mt-1">{pkg.alamat_pengirim}</p>
               </div>
               <div>
                 <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-3">Penerima</h3>
-                <p className="font-medium text-gray-900">{pkg.receiver_name}</p>
-                <p className="text-gray-600">{pkg.receiver_phone}</p>
-                <p className="text-gray-600 text-sm mt-1">{pkg.receiver_address}</p>
+                <p className="font-medium text-gray-900">{pkg.no_hp_penerima}</p>
+                <p className="text-gray-600 text-sm mt-1">{pkg.alamat_tujuan}</p>
               </div>
             </div>
           </div>
@@ -54,15 +52,15 @@ export default function PackageDetailPage() {
           <div className="bg-white rounded-xl shadow-card border border-gray-200 p-6">
             <h3 className="text-lg font-semibold text-gray-900 mb-4">Informasi Paket</h3>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-              <div><p className="text-xs text-gray-500">Berat</p><p className="font-medium">{pkg.weight} kg</p></div>
-              <div><p className="text-xs text-gray-500">Dimensi</p><p className="font-medium">{pkg.dimensions || '-'}</p></div>
-              <div><p className="text-xs text-gray-500">Biaya</p><p className="font-medium">{formatCurrency(pkg.shipping_cost)}</p></div>
-              <div><p className="text-xs text-gray-500">Gudang Saat Ini</p><p className="font-medium truncate" title={pkg.CurrentWarehouse?.nama_gudang}>{pkg.CurrentWarehouse?.nama_gudang || '-'}</p></div>
+              <div><p className="text-xs text-gray-500">Berat</p><p className="font-medium">{pkg.berat} kg</p></div>
+              <div><p className="text-xs text-gray-500">Jenis Layanan</p><p className="font-medium">{pkg.jenis_layanan || '-'}</p></div>
+              <div><p className="text-xs text-gray-500">Biaya</p><p className="font-medium">{formatCurrency(pkg.ongkos_kirim)}</p></div>
+              <div><p className="text-xs text-gray-500">Gudang Saat Ini</p><p className="font-medium truncate" title={pkg.current_warehouse_name}>{pkg.current_warehouse_name || '-'}</p></div>
             </div>
-            {pkg.notes && (
+            {pkg.deskripsi_barang && (
               <div className="mt-4 pt-4 border-t border-gray-100">
                 <p className="text-xs text-gray-500">Catatan</p>
-                <p className="text-sm text-gray-800">{pkg.notes}</p>
+                <p className="text-sm text-gray-800">{pkg.deskripsi_barang}</p>
               </div>
             )}
           </div>
@@ -74,7 +72,7 @@ export default function PackageDetailPage() {
             <PackageMap 
               receiverLat={pkg.receiver_lat} 
               receiverLng={pkg.receiver_lng} 
-              label={pkg.receiver_name} 
+              label={pkg.alamat_tujuan} 
               height="250px" 
             />
             

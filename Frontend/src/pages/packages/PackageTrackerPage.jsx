@@ -14,7 +14,7 @@ export default function PackageTrackerPage() {
   if (isLoadingPkg || isLoadingTracker) return <div>Loading...</div>;
   if (!pkg) return <div>Paket tidak ditemukan</div>;
 
-  const entries = trackerResp?.data || [];
+  const entries = trackerResp?.data?.tracking || [];
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -27,7 +27,7 @@ export default function PackageTrackerPage() {
         <div className="bg-white rounded-xl shadow-card border border-gray-200 p-6">
           <div className="flex justify-between items-center mb-6">
             <h3 className="text-lg font-semibold text-gray-900">Riwayat Status</h3>
-            <StatusBadge status={pkg.status} />
+            <StatusBadge status={pkg.current_status} />
           </div>
           <PackageStatusTimeline entries={entries} />
         </div>
@@ -38,15 +38,15 @@ export default function PackageTrackerPage() {
             <PackageMap 
               receiverLat={pkg.receiver_lat} 
               receiverLng={pkg.receiver_lng} 
-              label={pkg.receiver_name} 
+              label={pkg.alamat_tujuan} 
               height="350px" 
             />
           </div>
           
           <div className="bg-white rounded-xl shadow-card border border-gray-200 p-6">
              <h3 className="text-sm font-semibold text-gray-900 uppercase tracking-wider mb-2">Informasi Rute (Estimasi)</h3>
-             <p className="text-sm text-gray-600 mb-2"><strong>Asal:</strong> {pkg.sender_address}</p>
-             <p className="text-sm text-gray-600"><strong>Tujuan:</strong> {pkg.receiver_address}</p>
+             <p className="text-sm text-gray-600 mb-2"><strong>Asal:</strong> {pkg.alamat_pengirim}</p>
+             <p className="text-sm text-gray-600"><strong>Tujuan:</strong> {pkg.alamat_tujuan}</p>
              
              {pkg.receiver_lat && pkg.receiver_lng && (
                 <div className="mt-4 text-xs text-gray-500 bg-gray-50 p-3 rounded border">

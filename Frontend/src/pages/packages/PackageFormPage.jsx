@@ -10,9 +10,9 @@ export default function PackageFormPage() {
   const navigate = useNavigate();
 
   const [formData, setFormData] = useState({
-    sender_name: '', sender_phone: '', sender_address: '',
-    receiver_name: '', receiver_phone: '', receiver_address: '',
-    weight: '', dimensions: '', notes: '', warehouse_id: ''
+    nama_paket: '', alamat_pengirim: '', alamat_tujuan: '',
+    no_hp_pengirim: '', no_hp_penerima: '', deskripsi_barang: '',
+    berat: '', jenis_layanan: 'standar', current_warehouse_id: ''
   });
   const [errorMsg, setErrorMsg] = useState('');
 
@@ -27,10 +27,15 @@ export default function PackageFormPage() {
   useEffect(() => {
     if (isEdit && pkg) {
       setFormData({
-        sender_name: pkg.sender_name || '', sender_phone: pkg.sender_phone || '', sender_address: pkg.sender_address || '',
-        receiver_name: pkg.receiver_name || '', receiver_phone: pkg.receiver_phone || '', receiver_address: pkg.receiver_address || '',
-        weight: pkg.weight || '', dimensions: pkg.dimensions || '', notes: pkg.notes || '',
-        warehouse_id: pkg.current_warehouse_id || ''
+        nama_paket: pkg.nama_paket || '', 
+        alamat_pengirim: pkg.alamat_pengirim || '', 
+        alamat_tujuan: pkg.alamat_tujuan || '',
+        no_hp_pengirim: pkg.no_hp_pengirim || '', 
+        no_hp_penerima: pkg.no_hp_penerima || '', 
+        deskripsi_barang: pkg.deskripsi_barang || '',
+        berat: pkg.berat || '', 
+        jenis_layanan: pkg.jenis_layanan || 'standar', 
+        current_warehouse_id: pkg.current_warehouse_id || ''
       });
     }
   }, [isEdit, pkg]);
@@ -41,7 +46,7 @@ export default function PackageFormPage() {
     e.preventDefault();
     setErrorMsg('');
 
-    const payload = { ...formData, weight: Number(formData.weight) || 0 };
+    const payload = { ...formData, berat: Number(formData.berat) || 0, current_warehouse_id: Number(formData.current_warehouse_id) };
 
     if (isEdit) {
       updatePkg({ id, payload }, {
@@ -72,32 +77,38 @@ export default function PackageFormPage() {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div className="bg-white p-6 rounded-xl shadow-card border border-gray-200 space-y-4">
             <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Data Pengirim</h3>
-            <div><label className="block text-sm mb-1">Nama</label><input required name="sender_name" value={formData.sender_name} onChange={handleChange} className="w-full border rounded-md p-2" /></div>
-            <div><label className="block text-sm mb-1">Telepon</label><input required name="sender_phone" value={formData.sender_phone} onChange={handleChange} className="w-full border rounded-md p-2" /></div>
-            <div><label className="block text-sm mb-1">Alamat</label><textarea required name="sender_address" value={formData.sender_address} onChange={handleChange} className="w-full border rounded-md p-2" rows={3} /></div>
+            <div><label className="block text-sm mb-1">No. HP Pengirim</label><input required name="no_hp_pengirim" value={formData.no_hp_pengirim} onChange={handleChange} className="w-full border rounded-md p-2" /></div>
+            <div><label className="block text-sm mb-1">Alamat Pengirim</label><textarea required name="alamat_pengirim" value={formData.alamat_pengirim} onChange={handleChange} className="w-full border rounded-md p-2" rows={3} /></div>
           </div>
 
           <div className="bg-white p-6 rounded-xl shadow-card border border-gray-200 space-y-4">
             <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Data Penerima</h3>
-            <div><label className="block text-sm mb-1">Nama</label><input required name="receiver_name" value={formData.receiver_name} onChange={handleChange} className="w-full border rounded-md p-2" /></div>
-            <div><label className="block text-sm mb-1">Telepon</label><input required name="receiver_phone" value={formData.receiver_phone} onChange={handleChange} className="w-full border rounded-md p-2" /></div>
-            <div><label className="block text-sm mb-1">Alamat (Geocoded)</label><textarea required name="receiver_address" value={formData.receiver_address} onChange={handleChange} className="w-full border rounded-md p-2" rows={3} /></div>
+            <div><label className="block text-sm mb-1">No. HP Penerima</label><input required name="no_hp_penerima" value={formData.no_hp_penerima} onChange={handleChange} className="w-full border rounded-md p-2" /></div>
+            <div><label className="block text-sm mb-1">Alamat Tujuan (Geocoded)</label><textarea required name="alamat_tujuan" value={formData.alamat_tujuan} onChange={handleChange} className="w-full border rounded-md p-2" rows={3} /></div>
           </div>
         </div>
 
         {/* Package details */}
         <div className="bg-white p-6 rounded-xl shadow-card border border-gray-200 space-y-4">
           <h3 className="text-lg font-semibold text-gray-900 border-b pb-2">Detail Paket</h3>
+          <div><label className="block text-sm mb-1">Nama Paket</label><input required name="nama_paket" value={formData.nama_paket} onChange={handleChange} className="w-full border rounded-md p-2" /></div>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div><label className="block text-sm mb-1">Berat (kg)</label><input required type="number" step="0.1" name="weight" value={formData.weight} onChange={handleChange} className="w-full border rounded-md p-2" /></div>
-            <div><label className="block text-sm mb-1">Dimensi (PxLxT)</label><input name="dimensions" value={formData.dimensions} onChange={handleChange} className="w-full border rounded-md p-2" placeholder="contoh: 10x10x10" /></div>
+            <div><label className="block text-sm mb-1">Berat (kg)</label><input required type="number" step="0.1" name="berat" value={formData.berat} onChange={handleChange} className="w-full border rounded-md p-2" /></div>
+            <div>
+              <label className="block text-sm mb-1">Jenis Layanan</label>
+              <select required name="jenis_layanan" value={formData.jenis_layanan} onChange={handleChange} className="w-full border rounded-md p-2">
+                <option value="standar">Standar</option>
+                <option value="express">Express</option>
+                <option value="kargo">Kargo</option>
+              </select>
+            </div>
           </div>
-          <div><label className="block text-sm mb-1">Catatan</label><input name="notes" value={formData.notes} onChange={handleChange} className="w-full border rounded-md p-2" /></div>
+          <div><label className="block text-sm mb-1">Deskripsi Barang</label><input name="deskripsi_barang" value={formData.deskripsi_barang} onChange={handleChange} className="w-full border rounded-md p-2" /></div>
           
           {!isEdit && (
             <div>
               <label className="block text-sm mb-1">Gudang Awal</label>
-              <select required name="warehouse_id" value={formData.warehouse_id} onChange={handleChange} className="w-full border rounded-md p-2" disabled={isLoadingWh}>
+              <select required name="current_warehouse_id" value={formData.current_warehouse_id} onChange={handleChange} className="w-full border rounded-md p-2" disabled={isLoadingWh}>
                 <option value="">-- Pilih Gudang --</option>
                 {warehouses.map(w => <option key={w.warehouse_id} value={w.warehouse_id}>{w.nama_gudang}</option>)}
               </select>

@@ -21,7 +21,7 @@ export default function PackageListPage() {
     page,
     per_page: 10,
     q: search || undefined,
-    status: statusFilter || undefined,
+    current_status: statusFilter || undefined,
   });
   
   const { mutate: deletePackage } = useDeletePackage();
@@ -72,9 +72,9 @@ export default function PackageListPage() {
         isLoading={isLoading}
         columns={[
           { header: 'No. Resi', accessor: 'resi' },
-          { header: 'Pengirim', accessor: 'sender_name' },
-          { header: 'Penerima', accessor: 'receiver_name' },
-          { header: 'Status', render: (row) => <StatusBadge status={row.status} /> },
+          { header: 'Pengirim', accessor: 'alamat_pengirim' },
+          { header: 'Penerima', accessor: 'alamat_tujuan' },
+          { header: 'Status', render: (row) => <StatusBadge status={row.current_status} /> },
           { header: 'Dibuat', render: (row) => formatDate(row.created_at) },
           { 
             header: 'Aksi', 

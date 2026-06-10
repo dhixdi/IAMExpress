@@ -61,7 +61,7 @@ export default function UserDetailPage() {
         <div className="border-t border-gray-100 px-6 py-6 sm:px-8 grid grid-cols-1 sm:grid-cols-2 gap-6">
           <div>
             <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Gudang Penugasan</h3>
-            <p className="text-gray-900 font-medium">{user.Warehouse ? user.Warehouse.nama_gudang : '-'}</p>
+            <p className="text-gray-900 font-medium">{user.warehouse_name || '-'}</p>
           </div>
           <div>
             <h3 className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">Status Biometrik</h3>

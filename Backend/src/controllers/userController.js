@@ -52,7 +52,7 @@ const getUsers = async (req, res) => {
     );
 
     const meta = buildPaginationMeta(page, limit, total);
-    return successResponse(res, rows, 'Data users berhasil diambil', 200, meta);
+    return successResponse(res, { users: rows }, 'Data users berhasil diambil', 200, meta);
   } catch (error) {
     console.error('getUsers error:', error);
     return errorResponse(res, 'Internal server error', 500);
