@@ -43,7 +43,7 @@ class PackageModel {
     receiverLng: (json['receiver_lng'] as num?)?.toDouble(),
     currentStatus: json['current_status'] as String,
     currentWarehouseId: json['current_warehouse_id'] as int,
-    currentWarehouseName: json['warehouse_name'] as String?,
+    currentWarehouseName: json['current_warehouse_name'] as String?,
     createdAt: DateTime.parse(json['created_at'] as String),
   );
 }

@@ -10,6 +10,6 @@ class AiService {
 
   Future<String> chat(String message) async {
     final res = await _dio.post('/ai/chat', data: {'message': message});
-    return res.data['data']['reply'] as String;
+    return res.data['data']['response'] as String;
   }
 }

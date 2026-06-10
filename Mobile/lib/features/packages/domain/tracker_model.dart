@@ -13,7 +13,7 @@ class TrackerModel {
     status: json['status'] as String,
     notes: json['notes'] as String?,
     warehouseName: json['nama_gudang'] as String? ?? json['warehouse_name'] as String?,
-    changedByName: json['created_by_nama'] as String? ?? json['changed_by_nama'] as String? ?? '-',
+    changedByName: json['changed_by_name'] as String? ?? '-',
     timestamp: DateTime.parse(json['timestamp'] as String),
   );
 }
