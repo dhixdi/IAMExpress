@@ -1,6 +1,6 @@
 const axios = require('axios');
 
-const NOMINATIM_URL = process.env.GEOCODING_API_URL || 'https://nominatim.openstreetmap.org';
+const GOOGLE_MAPS_API_KEY = process.env.GOOGLE_MAPS_API_KEY;
 let lastRequestTime = 0;
 
 async function delay(ms) {
@@ -9,31 +9,37 @@ async function delay(ms) {
 
 async function geocodeAddress(address) {
   try {
-    // Enforce 1 second delay between requests (Nominatim rate limit)
+    // Google tidak perlu rate limit seketat Nominatim,
+    // tapi tetap kasih jeda kecil biar aman
     const now = Date.now();
     const elapsed = now - lastRequestTime;
-    if (elapsed < 1000) {
-      await delay(1000 - elapsed);
-    }
+    if (elapsed < 200) await delay(200 - elapsed);
     lastRequestTime = Date.now();
 
-    const response = await axios.get(`${NOMINATIM_URL}/search`, {
-      params: {
-        q: address,
-        format: 'json',
-        limit: 1
-      },
-      headers: {
-        'User-Agent': 'IAMExpress/1.0'
+    const response = await axios.get(
+      'https://maps.googleapis.com/maps/api/geocode/json',
+      {
+        params: {
+          address: address,
+          key: GOOGLE_MAPS_API_KEY,
+          region: 'id',        // bias ke Indonesia
+          language: 'id',
+        }
       }
-    });
+    );
 
-    if (response.data && response.data.length > 0) {
+    if (
+      response.data.status === 'OK' &&
+      response.data.results.length > 0
+    ) {
+      const loc = response.data.results[0].geometry.location;
       return {
-        lat: parseFloat(response.data[0].lat),
-        lng: parseFloat(response.data[0].lon)
+        lat: loc.lat,
+        lng: loc.lng
       };
     }
+
+    console.warn('Geocode tidak menemukan hasil untuk:', address, '| Status:', response.data.status);
     return null;
   } catch (error) {
     console.error('Geocoding error:', error.message);

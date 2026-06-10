@@ -15,7 +15,7 @@ INSERT INTO users (nama, email, password_hash, role, warehouse_id, biometrics_en
 ('Admin Gudang JKT', 'admin_jkt@iamexpress.id', '$2b$10$4nG5ceQ1gS.RORnCl617CuTBkVzPyF4ebFHcRThieUjwitfOAY0mW', 'WAREHOUSE_ADMIN', 1, 0, NULL, NOW()),
 ('Admin Gudang SBY', 'admin_sby@iamexpress.id', '$2b$10$4nG5ceQ1gS.RORnCl617CuTBkVzPyF4ebFHcRThieUjwitfOAY0mW', 'WAREHOUSE_ADMIN', 2, 0, NULL, NOW()),
 ('Linehaul Driver 1', 'linehaul1@iamexpress.id', '$2b$10$4nG5ceQ1gS.RORnCl617CuTBkVzPyF4ebFHcRThieUjwitfOAY0mW', 'LINEHAUL', 1, 0, NULL, NOW()),
-('Courier JKT 1', 'courier_jkt1@iamexpress.id', '$2b$10$4nG5ceQ1gS.RORnCl617CuTBkVzPyF4ebFHcRThieUjwitfOAY0mW', 'COURIER', 1, 0, NULL, NOW());
+('Kurir JKT 1', 'courier_jkt1@iamexpress.id', '$2b$10$4nG5ceQ1gS.RORnCl617CuTBkVzPyF4ebFHcRThieUjwitfOAY0mW', 'COURIER', 1, 0, NULL, NOW());
 
 -- 3. Insert Packages
 -- Asumsi package_id 1, 2, 3

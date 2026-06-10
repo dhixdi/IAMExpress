@@ -46,4 +46,26 @@ class PackageModel {
     currentWarehouseName: json['current_warehouse_name'] as String?,
     createdAt: DateTime.parse(json['created_at'] as String),
   );
+
+  factory PackageModel.fromMap(Map<String, dynamic> map) => PackageModel.fromJson(map);
+
+  Map<String, dynamic> toMap() => {
+    'package_id': packageId,
+    'resi': resi,
+    'nama_paket': namaPaket,
+    'alamat_pengirim': alamatPengirim,
+    'alamat_tujuan': alamatTujuan,
+    'no_hp_pengirim': noHpPengirim,
+    'no_hp_penerima': noHpPenerima,
+    'deskripsi_barang': deskripsiBarang,
+    'berat': berat,
+    'jenis_layanan': jenisLayanan,
+    'ongkos_kirim': ongkosKirim,
+    'receiver_lat': receiverLat,
+    'receiver_lng': receiverLng,
+    'current_status': currentStatus,
+    'current_warehouse_id': currentWarehouseId,
+    'current_warehouse_name': currentWarehouseName,
+    'created_at': createdAt.toIso8601String(),
+  };
 }
