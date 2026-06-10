@@ -1,7 +1,7 @@
 class AppConstants {
   static const String apiBaseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:3000/api/v1',
+    defaultValue: 'https://iamexpress-backend-254683579194.asia-southeast2.run.app/api/v1',
   );
   static const String exchangeRateApiKey = String.fromEnvironment(
     'EXCHANGERATE_API_KEY',
