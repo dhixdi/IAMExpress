@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -52,7 +53,7 @@ class ProfileScreen extends ConsumerWidget {
             sliver: SliverList(delegate: SliverChildListDelegate([
               _SectionTitle('Akun'),
               _MenuItem(icon: Icons.lock_outline, label: 'Ganti Password', onTap: () => context.go(Routes.changePassword)),
-              _MenuItem(icon: Icons.fingerprint, label: 'Pengaturan Biometrik', onTap: () => context.go(Routes.biometricSetting)),
+              if (!kIsWeb) _MenuItem(icon: Icons.fingerprint, label: 'Pengaturan Biometrik', onTap: () => context.go(Routes.biometricSetting)),
               const SizedBox(height: 16),
               _SectionTitle('Tools TPM'),
               _MenuItem(icon: Icons.currency_exchange, label: 'Konversi Mata Uang', onTap: () => context.go(Routes.currency)),

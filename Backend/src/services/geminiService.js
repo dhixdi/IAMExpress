@@ -1,7 +1,7 @@
 const axios = require('axios');
 
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`;
+const GEMINI_URL = `https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent`;
 
 async function chatWithGemini(message, context = {}) {
   try {
@@ -50,7 +50,11 @@ Konteks pengguna saat ini:
 
     return 'Maaf, tidak dapat memproses permintaan saat ini. Silakan coba lagi.';
   } catch (error) {
-    console.error('Gemini API error:', error.message);
+    if (error.response) {
+      console.error('Gemini API error:', JSON.stringify(error.response.data));
+    } else {
+      console.error('Gemini API error:', error.message);
+    }
     return 'Maaf, terjadi kesalahan saat menghubungi AI. Silakan coba lagi nanti.';
   }
 }

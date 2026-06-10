@@ -76,7 +76,10 @@ class _PetaScreenState extends ConsumerState<PetaScreen> {
       body: FlutterMap(
         options: MapOptions(initialCenter: _userPos != null ? LatLng(_userPos!.latitude, _userPos!.longitude) : const LatLng(-7.7972, 110.3688), initialZoom: 11),
         children: [
-          TileLayer(urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png'),
+          TileLayer(
+            urlTemplate: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+            userAgentPackageName: 'com.example.tugas_akhir',
+          ),
           MarkerLayer(markers: [
             if (_userPos != null) Marker(point: LatLng(_userPos!.latitude, _userPos!.longitude), child: const Icon(Icons.my_location, color: AppColors.info, size: 32)),
             ...activePackages.map((pkg) => Marker(
