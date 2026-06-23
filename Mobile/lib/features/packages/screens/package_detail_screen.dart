@@ -1,7 +1,11 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:intl/intl.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/package_status.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/utils/format_currency.dart';
@@ -10,6 +14,7 @@ import '../../../shared/widgets/loading_overlay.dart';
 import '../../../shared/widgets/error_view.dart';
 import '../../../shared/widgets/status_badge.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../data/package_service.dart';
 import '../providers/package_detail_provider.dart';
 
 class PackageDetailScreen extends ConsumerStatefulWidget {
@@ -44,6 +49,23 @@ class _PackageDetailScreenState extends ConsumerState<PackageDetailScreen> {
     setState(() { _updating = false; _notes = null; });
   }
 
+  Future<void> _deliveredWithPhoto() async {
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: ImageSource.camera, imageQuality: 70);
+    if (picked == null) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Foto wajib untuk menyelesaikan pengiriman'), backgroundColor: AppColors.danger));
+      return;
+    }
+    setState(() => _updating = true);
+    try {
+      await updatePackageStatusWithPhoto(ref, widget.packageId, PackageStatus.delivered, File(picked.path), notes: _notes);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Paket berhasil dikirim!'), backgroundColor: AppColors.success));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal: $e'), backgroundColor: AppColors.danger));
+    }
+    setState(() { _updating = false; _notes = null; });
+  }
+
   void _confirmUpdate(String status, {bool destructive = false, bool withNotes = false}) {
     showModalBottomSheet(
       context: context,
@@ -56,6 +78,32 @@ class _PackageDetailScreenState extends ConsumerState<PackageDetailScreen> {
         showNotesField: withNotes,
         onNotesChanged: (v) => _notes = v,
         onConfirm: () => _doUpdate(status),
+      ),
+    );
+  }
+
+  void _confirmDelete() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      builder: (_) => ConfirmBottomSheet(
+        title: 'Hapus Paket',
+        message: 'Yakin ingin menghapus paket ini? Tindakan ini tidak dapat dibatalkan.',
+        confirmLabel: 'Ya, Hapus',
+        isDestructive: true,
+        onConfirm: () async {
+          setState(() => _updating = true);
+          try {
+            await ref.read(packageServiceProvider).deletePackage(widget.packageId);
+            if (mounted) {
+              ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Paket berhasil dihapus'), backgroundColor: AppColors.success));
+              context.go('/packages');
+            }
+          } catch (e) {
+            if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal: $e'), backgroundColor: AppColors.danger));
+            setState(() => _updating = false);
+          }
+        },
       ),
     );
   }
@@ -116,6 +164,45 @@ class _PackageDetailScreenState extends ConsumerState<PackageDetailScreen> {
                         label: const Text('Lihat Riwayat Tracking'),
                       ),
                     ),
+                    if (role == 'WAREHOUSE_ADMIN' && pkg.currentStatus != PackageStatus.delivered && pkg.currentStatus != PackageStatus.failedDelivery) ...[
+                      const SizedBox(height: 12),
+                      Row(children: [
+                        Expanded(child: OutlinedButton.icon(onPressed: () => context.go('/packages/${pkg.packageId}/edit'), icon: const Icon(Icons.edit), label: const Text('Edit'))),
+                        const SizedBox(width: 8),
+                        Expanded(child: ElevatedButton.icon(onPressed: () => context.go('/packages/${pkg.packageId}/assign'), icon: const Icon(Icons.person_add), label: const Text('Assign'))),
+                      ]),
+                    ],
+                    if (role == 'SUPER_ADMIN' || role == 'WAREHOUSE_ADMIN') ...[
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: _confirmDelete,
+                          icon: const Icon(Icons.delete, color: AppColors.danger),
+                          label: const Text('Hapus Paket', style: TextStyle(color: AppColors.danger)),
+                          style: OutlinedButton.styleFrom(side: const BorderSide(color: AppColors.danger)),
+                        ),
+                      ),
+                    ],
+                    if (pkg.currentStatus == PackageStatus.delivered) ...[
+                      const SizedBox(height: 12),
+                      _section('Bukti Pengiriman', [
+                        if (pkg.deliveredAt != null)
+                          _row('Dikirim pada', DateFormat('dd MMM yyyy, HH:mm').format(pkg.deliveredAt!)),
+                        if (pkg.deliveryPhotoUrl != null) ...[
+                          const SizedBox(height: 8),
+                          ClipRRect(
+                            borderRadius: BorderRadius.circular(8),
+                            child: Image.network(
+                              '${AppConstants.apiBaseUrl.replaceAll('/api/v1', '')}${pkg.deliveryPhotoUrl}',
+                              width: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => const Text('Foto tidak dapat dimuat'),
+                            ),
+                          ),
+                        ],
+                      ]),
+                    ],
                     const SizedBox(height: 24),
                       if (isOutForDelivery) ...[
                         const Text('Aksi', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
@@ -123,7 +210,7 @@ class _PackageDetailScreenState extends ConsumerState<PackageDetailScreen> {
                         Row(children: [
                           Expanded(child: OutlinedButton.icon(onPressed: () => _openGoogleMaps(pkg), icon: const Icon(Icons.directions), label: const Text('Rute'))),
                         const SizedBox(width: 8),
-                        Expanded(child: ElevatedButton.icon(onPressed: () => _confirmUpdate(PackageStatus.delivered), icon: const Icon(Icons.check), label: const Text('Selesai'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.success))),
+                        Expanded(child: ElevatedButton.icon(onPressed: _deliveredWithPhoto, icon: const Icon(Icons.camera_alt), label: const Text('Selesai'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.success))),
                         const SizedBox(width: 8),
                         Expanded(child: ElevatedButton.icon(onPressed: () => _confirmUpdate(PackageStatus.failedDelivery, destructive: true, withNotes: true), icon: const Icon(Icons.close), label: const Text('Gagal'), style: ElevatedButton.styleFrom(backgroundColor: AppColors.danger))),
                       ]),

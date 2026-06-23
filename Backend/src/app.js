@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
+const path = require('path');
 const { errorResponse } = require('./utils/response');
 
 const app = express();
@@ -25,6 +26,9 @@ app.use(morgan('dev'));
 // Body parsers
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Static file serving for uploads
+app.use('/uploads', express.static(path.join(__dirname, '..', 'public', 'uploads')));
 
 // Health check
 app.get('/', (req, res) => {

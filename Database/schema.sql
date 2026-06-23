@@ -95,6 +95,8 @@ CREATE TABLE packages (
                             'Failed Delivery'
                           )              NOT NULL   DEFAULT 'Created',
   assigned_user_id        INT            NULL       COMMENT 'Linehaul atau Courier yang ditugaskan',
+  delivery_photo_url      VARCHAR(255)   NULL       COMMENT 'URL foto bukti pengiriman',
+  delivered_at            TIMESTAMP      NULL       COMMENT 'Waktu paket diterima',
   created_at              TIMESTAMP      NOT NULL   DEFAULT CURRENT_TIMESTAMP,
 
   PRIMARY KEY (package_id),

@@ -1,18 +1,64 @@
+import 'dart:convert';
+import 'dart:io';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../core/constants/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../shared/widgets/confirm_bottom_sheet.dart';
 import '../../auth/providers/auth_provider.dart';
+import '../data/user_service.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends ConsumerStatefulWidget {
   const ProfileScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends ConsumerState<ProfileScreen> {
+  bool _uploading = false;
+
+  Future<void> _pickPhoto() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (_) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(leading: const Icon(Icons.camera_alt), title: const Text('Kamera'), onTap: () => Navigator.pop(context, ImageSource.camera)),
+          ListTile(leading: const Icon(Icons.photo_library), title: const Text('Galeri'), onTap: () => Navigator.pop(context, ImageSource.gallery)),
+        ]),
+      ),
+    );
+    if (source == null) return;
+
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: source, maxWidth: 512, maxHeight: 512, imageQuality: 75);
+    if (picked == null) return;
+
+    setState(() => _uploading = true);
+    try {
+      // Convert ke base64 data URI agar bisa disimpan langsung tanpa file server
+      final bytes = await picked.readAsBytes();
+      final base64Str = base64Encode(bytes);
+      final ext = picked.path.split('.').last.toLowerCase();
+      final mimeType = ext == 'png' ? 'image/png' : 'image/jpeg';
+      final dataUri = 'data:$mimeType;base64,$base64Str';
+
+      final updatedUser = await ref.read(userServiceProvider).updatePhoto(dataUri);
+      ref.read(authProvider).updateUser(updatedUser);
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Foto profil berhasil diperbarui!')));
+    } catch (e) {
+      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Gagal update foto: $e')));
+    } finally {
+      if (mounted) setState(() => _uploading = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final user = ref.watch(authProvider).user;
     if (user == null) return const SizedBox();
 
@@ -29,11 +75,30 @@ class ProfileScreen extends ConsumerWidget {
               ),
               child: Column(
                 children: [
-                  CircleAvatar(
-                    radius: 40,
-                    backgroundColor: AppColors.accent,
-                    backgroundImage: user.photoUrl != null ? CachedNetworkImageProvider(user.photoUrl!) : null,
-                    child: user.photoUrl == null ? Text(user.nama[0].toUpperCase(), style: const TextStyle(fontSize: 32, color: Colors.white)) : null,
+                  GestureDetector(
+                    onTap: _uploading ? null : _pickPhoto,
+                    child: Stack(
+                      children: [
+                        CircleAvatar(
+                          radius: 40,
+                          backgroundColor: AppColors.accent,
+                          backgroundImage: user.photoUrl != null ? CachedNetworkImageProvider(user.photoUrl!) : null,
+                          child: _uploading
+                              ? const CircularProgressIndicator(color: Colors.white, strokeWidth: 2)
+                              : user.photoUrl == null
+                                  ? Text(user.nama[0].toUpperCase(), style: const TextStyle(fontSize: 32, color: Colors.white))
+                                  : null,
+                        ),
+                        Positioned(
+                          bottom: 0, right: 0,
+                          child: Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(color: AppColors.accent, shape: BoxShape.circle, border: Border.all(color: Colors.white, width: 2)),
+                            child: const Icon(Icons.camera_alt, size: 16, color: Colors.white),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                   const SizedBox(height: 12),
                   Text(user.nama, style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),

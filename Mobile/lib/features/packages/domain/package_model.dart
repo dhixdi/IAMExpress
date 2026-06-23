@@ -17,6 +17,10 @@ class PackageModel {
   final String? currentWarehouseName;
   final int? destinationWarehouseId;
   final String? destinationWarehouseName;
+  final double? destinationWarehouseLat;
+  final double? destinationWarehouseLng;
+  final String? deliveryPhotoUrl;
+  final DateTime? deliveredAt;
   final DateTime createdAt;
 
   const PackageModel({
@@ -27,7 +31,9 @@ class PackageModel {
     required this.ongkosKirim, this.receiverLat, this.receiverLng,
     required this.currentStatus, required this.currentWarehouseId,
     this.currentWarehouseName, this.destinationWarehouseId,
-    this.destinationWarehouseName, required this.createdAt,
+    this.destinationWarehouseName, this.destinationWarehouseLat,
+    this.destinationWarehouseLng, this.deliveryPhotoUrl,
+    this.deliveredAt, required this.createdAt,
   });
 
   static double _toDouble(dynamic v) => v == null ? 0.0 : (v is num ? v.toDouble() : double.tryParse(v.toString()) ?? 0.0);
@@ -53,6 +59,10 @@ class PackageModel {
     currentWarehouseName: json['current_warehouse_name'] as String?,
     destinationWarehouseId: json['destination_warehouse_id'] != null ? _toInt(json['destination_warehouse_id']) : null,
     destinationWarehouseName: json['destination_warehouse_name'] as String?,
+    destinationWarehouseLat: _toDoubleNullable(json['destination_warehouse_lat']),
+    destinationWarehouseLng: _toDoubleNullable(json['destination_warehouse_lng']),
+    deliveryPhotoUrl: json['delivery_photo_url'] as String?,
+    deliveredAt: json['delivered_at'] != null ? DateTime.parse(json['delivered_at'].toString()) : null,
     createdAt: DateTime.parse(json['created_at'].toString()),
   );
 
@@ -77,6 +87,10 @@ class PackageModel {
     'current_warehouse_name': currentWarehouseName,
     'destination_warehouse_id': destinationWarehouseId,
     'destination_warehouse_name': destinationWarehouseName,
+    'destination_warehouse_lat': destinationWarehouseLat,
+    'destination_warehouse_lng': destinationWarehouseLng,
+    'delivery_photo_url': deliveryPhotoUrl,
+    'delivered_at': deliveredAt?.toIso8601String(),
     'created_at': createdAt.toIso8601String(),
   };
 }

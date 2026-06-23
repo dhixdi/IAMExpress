@@ -34,6 +34,14 @@ class PackageStatus {
         _ => [],
       };
     }
+    if (role == 'WAREHOUSE_ADMIN') {
+      return switch (currentStatus) {
+        created => [receivedAtWarehouse],
+        receivedAtWarehouse => [],
+        arrivedAtWarehouse => [],
+        _ => [],
+      };
+    }
     return [];
   }
 }

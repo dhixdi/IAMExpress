@@ -23,6 +23,11 @@ class AuthState extends ChangeNotifier {
     notifyListeners();
   }
 
+  void updateUser(UserModel updatedUser) {
+    user = updatedUser;
+    notifyListeners();
+  }
+
   void clear() {
     token = null;
     user = null;

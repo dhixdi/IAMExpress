@@ -1,3 +1,4 @@
+import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/notifications/notification_service.dart';
 import '../data/package_service.dart';
@@ -14,6 +15,14 @@ final packageTrackerProvider = FutureProvider.family.autoDispose<List<TrackerMod
 
 Future<PackageModel> updatePackageStatus(WidgetRef ref, int id, String status, {String? notes}) async {
   final updated = await ref.read(packageServiceProvider).updateStatus(id, status, notes: notes);
+  await NotificationService.showStatusUpdate(resi: updated.resi, newStatus: status);
+  ref.invalidate(packageDetailProvider(id));
+  ref.invalidate(packageTrackerProvider(id));
+  return updated;
+}
+
+Future<PackageModel> updatePackageStatusWithPhoto(WidgetRef ref, int id, String status, File photo, {String? notes}) async {
+  final updated = await ref.read(packageServiceProvider).updateStatusWithPhoto(id, status, photo, notes: notes);
   await NotificationService.showStatusUpdate(resi: updated.resi, newStatus: status);
   ref.invalidate(packageDetailProvider(id));
   ref.invalidate(packageTrackerProvider(id));

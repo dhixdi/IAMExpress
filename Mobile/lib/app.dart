@@ -10,8 +10,14 @@ import 'features/dashboard/screens/dashboard_screen.dart';
 import 'features/packages/screens/package_list_screen.dart';
 import 'features/packages/screens/package_detail_screen.dart';
 import 'features/packages/screens/package_tracker_screen.dart';
+import 'features/packages/screens/package_form_screen.dart';
+import 'features/packages/screens/package_assign_screen.dart';
 import 'features/peta/screens/peta_screen.dart';
 import 'features/ai_chat/screens/ai_chat_screen.dart';
+import 'features/users/screens/user_list_screen.dart';
+import 'features/users/screens/user_form_screen.dart';
+import 'features/warehouses/screens/warehouse_list_screen.dart';
+import 'features/warehouses/screens/warehouse_form_screen.dart';
 import 'features/profile/screens/profile_screen.dart';
 import 'features/profile/screens/change_password_screen.dart';
 import 'features/profile/screens/biometric_setting_screen.dart';
@@ -53,6 +59,10 @@ final routerProvider = Provider<GoRouter>((ref) {
             builder: (_, __) => const PackageListScreen(),
             routes: [
               GoRoute(
+                path: 'create',
+                builder: (_, __) => const PackageFormScreen(),
+              ),
+              GoRoute(
                 path: ':id',
                 builder: (_, state) => PackageDetailScreen(
                   packageId: int.parse(state.pathParameters['id']!),
@@ -64,12 +74,56 @@ final routerProvider = Provider<GoRouter>((ref) {
                       packageId: int.parse(state.pathParameters['id']!),
                     ),
                   ),
+                  GoRoute(
+                    path: 'edit',
+                    builder: (_, state) => PackageFormScreen(
+                      packageId: int.parse(state.pathParameters['id']!),
+                    ),
+                  ),
+                  GoRoute(
+                    path: 'assign',
+                    builder: (_, state) => PackageAssignScreen(
+                      packageId: int.parse(state.pathParameters['id']!),
+                    ),
+                  ),
                 ],
               ),
             ],
           ),
           GoRoute(path: Routes.peta, builder: (_, __) => const PetaScreen()),
           GoRoute(path: Routes.aiChat, builder: (_, __) => const AiChatScreen()),
+          GoRoute(
+            path: Routes.users,
+            builder: (_, __) => const UserListScreen(),
+            routes: [
+              GoRoute(
+                path: 'create',
+                builder: (_, __) => const UserFormScreen(),
+              ),
+              GoRoute(
+                path: ':id/edit',
+                builder: (_, state) => UserFormScreen(
+                  userId: int.parse(state.pathParameters['id']!),
+                ),
+              ),
+            ],
+          ),
+          GoRoute(
+            path: Routes.warehouses,
+            builder: (_, __) => const WarehouseListScreen(),
+            routes: [
+              GoRoute(
+                path: 'create',
+                builder: (_, __) => const WarehouseFormScreen(),
+              ),
+              GoRoute(
+                path: ':id/edit',
+                builder: (_, state) => WarehouseFormScreen(
+                  warehouseId: int.parse(state.pathParameters['id']!),
+                ),
+              ),
+            ],
+          ),
           GoRoute(path: Routes.profile, builder: (_, __) => const ProfileScreen()),
           GoRoute(path: Routes.changePassword, builder: (_, __) => const ChangePasswordScreen()),
           GoRoute(path: Routes.biometricSetting, builder: (_, __) => const BiometricSettingScreen()),

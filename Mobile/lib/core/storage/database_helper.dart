@@ -46,6 +46,10 @@ class DatabaseHelper {
         current_warehouse_name TEXT,
         destination_warehouse_id INTEGER,
         destination_warehouse_name TEXT,
+        destination_warehouse_lat REAL,
+        destination_warehouse_lng REAL,
+        delivery_photo_url TEXT,
+        delivered_at TEXT,
         created_at TEXT NOT NULL
       )
     ''');

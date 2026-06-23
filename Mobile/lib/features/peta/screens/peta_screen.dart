@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../packages/domain/package_model.dart';
 import '../../packages/providers/package_list_provider.dart';
+import '../../auth/providers/auth_provider.dart';
 
 class PetaScreen extends ConsumerStatefulWidget {
   const PetaScreen({super.key});
@@ -36,7 +37,11 @@ class _PetaScreenState extends ConsumerState<PetaScreen> {
     } catch (_) {}
   }
 
-  void _showPackageInfo(PackageModel pkg) {
+  void _showPackageInfo(PackageModel pkg, String role) {
+    final isLinehaul = role == 'LINEHAUL';
+    final targetLat = isLinehaul ? pkg.destinationWarehouseLat : pkg.receiverLat;
+    final targetLng = isLinehaul ? pkg.destinationWarehouseLng : pkg.receiverLng;
+
     showModalBottomSheet(
       context: context,
       builder: (_) => Padding(
@@ -45,13 +50,20 @@ class _PetaScreenState extends ConsumerState<PetaScreen> {
           Text(pkg.resi, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
           const SizedBox(height: 8),
           Text(pkg.namaPaket, style: const TextStyle(fontSize: 14)),
-          Text(pkg.alamatTujuan, style: const TextStyle(fontSize: 13, color: AppColors.textMuted)),
+          if (isLinehaul && pkg.destinationWarehouseName != null)
+            Text('Tujuan: Gudang ${pkg.destinationWarehouseName}', style: const TextStyle(fontSize: 13, color: AppColors.textMuted))
+          else
+            Text(pkg.alamatTujuan, style: const TextStyle(fontSize: 13, color: AppColors.textMuted)),
           Text('Status: ${pkg.currentStatus}', style: const TextStyle(fontSize: 13)),
           const SizedBox(height: 16),
           SizedBox(
             width: double.infinity,
             child: ElevatedButton.icon(
-              onPressed: () => _openGoogleMaps(pkg.receiverLat!, pkg.receiverLng!),
+              onPressed: () {
+                if (targetLat != null && targetLng != null) {
+                  _openGoogleMaps(targetLat, targetLng);
+                }
+              },
               icon: const Icon(Icons.directions),
               label: const Text('Buka di Google Maps'),
             ),
@@ -69,7 +81,20 @@ class _PetaScreenState extends ConsumerState<PetaScreen> {
   @override
   Widget build(BuildContext context) {
     final state = ref.watch(packageListProvider(null));
-    final activePackages = state.packages.where((p) => p.receiverLat != null && p.receiverLng != null).toList();
+    final userRole = ref.watch(authProvider).user?.role ?? '';
+    final isLinehaul = userRole == 'LINEHAUL';
+
+    final activePackages = state.packages.where((p) {
+      if (isLinehaul) {
+        final validStatus = p.currentStatus == 'Picked Up' || p.currentStatus == 'In Transit';
+        return validStatus && p.destinationWarehouseLat != null && p.destinationWarehouseLng != null;
+      }
+      if (userRole == 'COURIER') {
+        return p.currentStatus == 'Out For Delivery' && p.receiverLat != null && p.receiverLng != null;
+      }
+      // Admin roles: show all packages with coordinates
+      return p.receiverLat != null && p.receiverLng != null;
+    }).toList();
 
     return Scaffold(
       appBar: AppBar(title: const Text('Peta Paket')),
@@ -82,10 +107,14 @@ class _PetaScreenState extends ConsumerState<PetaScreen> {
           ),
           MarkerLayer(markers: [
             if (_userPos != null) Marker(point: LatLng(_userPos!.latitude, _userPos!.longitude), child: const Icon(Icons.my_location, color: AppColors.info, size: 32)),
-            ...activePackages.map((pkg) => Marker(
-              point: LatLng(pkg.receiverLat!, pkg.receiverLng!),
-              child: GestureDetector(onTap: () => _showPackageInfo(pkg), child: const Icon(Icons.location_pin, color: AppColors.accent, size: 36)),
-            )),
+            ...activePackages.map((pkg) {
+              final lat = isLinehaul ? pkg.destinationWarehouseLat! : pkg.receiverLat!;
+              final lng = isLinehaul ? pkg.destinationWarehouseLng! : pkg.receiverLng!;
+              return Marker(
+                point: LatLng(lat, lng),
+                child: GestureDetector(onTap: () => _showPackageInfo(pkg, userRole), child: const Icon(Icons.location_pin, color: AppColors.accent, size: 36)),
+              );
+            }),
           ]),
         ],
       ),

@@ -54,6 +54,8 @@ const getPackages = async (req, res) => {
       `SELECT p.*,
               wc.nama_gudang AS current_warehouse_name,
               wd.nama_gudang AS destination_warehouse_name,
+              wd.lat AS destination_warehouse_lat,
+              wd.lng AS destination_warehouse_lng,
               u.nama AS assigned_user_name,
               u.role AS assigned_user_role
        FROM packages p
@@ -82,6 +84,8 @@ const getPackageById = async (req, res) => {
       `SELECT p.*,
               wc.nama_gudang AS current_warehouse_name,
               wd.nama_gudang AS destination_warehouse_name,
+              wd.lat AS destination_warehouse_lat,
+              wd.lng AS destination_warehouse_lng,
               u.nama AS assigned_user_name,
               u.role AS assigned_user_role
        FROM packages p
@@ -110,7 +114,9 @@ const trackByResi = async (req, res) => {
     const [packages] = await db.query(
       `SELECT p.*,
               wc.nama_gudang AS current_warehouse_name,
-              wd.nama_gudang AS destination_warehouse_name
+              wd.nama_gudang AS destination_warehouse_name,
+              wd.lat AS destination_warehouse_lat,
+              wd.lng AS destination_warehouse_lng
        FROM packages p
        LEFT JOIN warehouses wc ON p.current_warehouse_id = wc.warehouse_id
        LEFT JOIN warehouses wd ON p.destination_warehouse_id = wd.warehouse_id
@@ -205,7 +211,9 @@ const createPackage = async (req, res) => {
     const [newPackage] = await db.query(
       `SELECT p.*,
               wc.nama_gudang AS current_warehouse_name,
-              wd.nama_gudang AS destination_warehouse_name
+              wd.nama_gudang AS destination_warehouse_name,
+              wd.lat AS destination_warehouse_lat,
+              wd.lng AS destination_warehouse_lng
        FROM packages p
        LEFT JOIN warehouses wc ON p.current_warehouse_id = wc.warehouse_id
        LEFT JOIN warehouses wd ON p.destination_warehouse_id = wd.warehouse_id
@@ -265,7 +273,9 @@ const updatePackage = async (req, res) => {
     const [rows] = await db.query(
       `SELECT p.*,
               wc.nama_gudang AS current_warehouse_name,
-              wd.nama_gudang AS destination_warehouse_name
+              wd.nama_gudang AS destination_warehouse_name,
+              wd.lat AS destination_warehouse_lat,
+              wd.lng AS destination_warehouse_lng
        FROM packages p
        LEFT JOIN warehouses wc ON p.current_warehouse_id = wc.warehouse_id
        LEFT JOIN warehouses wd ON p.destination_warehouse_id = wd.warehouse_id
@@ -335,6 +345,11 @@ const updateStatus = async (req, res) => {
       return errorResponse(res, `Role ${req.user.role} tidak dapat mengubah status ke '${status}'`, 403);
     }
 
+    // Require photo for Delivered status
+    if (status === 'Delivered' && !req.file) {
+      return errorResponse(res, 'Foto bukti pengiriman wajib untuk status Delivered', 400);
+    }
+
     const updateFields = ['current_status = ?'];
     const updateValues = [status];
 
@@ -342,6 +357,14 @@ const updateStatus = async (req, res) => {
     if (status === 'Arrived at Warehouse' && existing[0].destination_warehouse_id) {
       updateFields.push('current_warehouse_id = ?');
       updateValues.push(existing[0].destination_warehouse_id);
+    }
+
+    // If COURIER marks as 'Delivered', save photo and timestamp
+    if (status === 'Delivered') {
+      const photoUrl = `/uploads/delivery/${req.file.filename}`;
+      updateFields.push('delivery_photo_url = ?');
+      updateValues.push(photoUrl);
+      updateFields.push('delivered_at = NOW()');
     }
 
     updateValues.push(id);
@@ -360,6 +383,8 @@ const updateStatus = async (req, res) => {
       finalNotes = 'Sedang dalam perjalanan menuju gudang tujuan';
     } else if (status === 'Arrived at Warehouse' && !finalNotes) {
       finalNotes = 'Paket telah tiba dan diterima di gudang';
+    } else if (status === 'Delivered' && !finalNotes) {
+      finalNotes = 'Paket telah diterima oleh penerima';
     }
 
     // Insert tracker entry
@@ -373,6 +398,8 @@ const updateStatus = async (req, res) => {
       `SELECT p.*,
               wc.nama_gudang AS current_warehouse_name,
               wd.nama_gudang AS destination_warehouse_name,
+              wd.lat AS destination_warehouse_lat,
+              wd.lng AS destination_warehouse_lng,
               u.nama AS assigned_user_name
        FROM packages p
        LEFT JOIN warehouses wc ON p.current_warehouse_id = wc.warehouse_id
@@ -464,6 +491,8 @@ const assignPackage = async (req, res) => {
       `SELECT p.*,
               wc.nama_gudang AS current_warehouse_name,
               wd.nama_gudang AS destination_warehouse_name,
+              wd.lat AS destination_warehouse_lat,
+              wd.lng AS destination_warehouse_lng,
               u.nama AS assigned_user_name,
               u.role AS assigned_user_role
        FROM packages p

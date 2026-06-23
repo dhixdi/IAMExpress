@@ -28,7 +28,11 @@ class _PackageListScreenState extends ConsumerState<PackageListScreen> with Sing
     if (role == 'LINEHAUL') {
       return [null, PackageStatus.assignedToLinehaul, 'Picked Up,In Transit', PackageStatus.arrivedAtWarehouse];
     }
-    return [null, PackageStatus.assignedToCourier, PackageStatus.outForDelivery, 'Delivered,Failed Delivery'];
+    if (role == 'COURIER') {
+      return [null, PackageStatus.assignedToCourier, PackageStatus.outForDelivery, 'Delivered,Failed Delivery'];
+    }
+    // SUPER_ADMIN & WAREHOUSE_ADMIN
+    return [null, 'Created,Received at Warehouse', 'Assigned to Linehaul,Picked Up,In Transit,Arrived at Warehouse,Assigned to Courier,Out For Delivery', 'Delivered,Failed Delivery'];
   }
 
   @override
@@ -68,7 +72,7 @@ class _PackageListScreenState extends ConsumerState<PackageListScreen> with Sing
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Paket Saya'),
+        title: Text(ref.watch(authProvider).user?.role == 'SUPER_ADMIN' || ref.watch(authProvider).user?.role == 'WAREHOUSE_ADMIN' ? 'Semua Paket' : 'Paket Saya'),
         bottom: TabBar(
           controller: _tabCtrl,
           labelColor: Colors.white,
@@ -77,6 +81,12 @@ class _PackageListScreenState extends ConsumerState<PackageListScreen> with Sing
           tabs: const [Tab(text: 'Semua'), Tab(text: 'Di Gudang'), Tab(text: 'Diantar'), Tab(text: 'Selesai')],
         ),
       ),
+      floatingActionButton: ref.watch(authProvider).user?.role == 'WAREHOUSE_ADMIN'
+          ? FloatingActionButton(
+              onPressed: () => context.go('/packages/create'),
+              child: const Icon(Icons.add),
+            )
+          : null,
       body: Column(
         children: [
           Padding(
